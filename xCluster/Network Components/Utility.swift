@@ -466,7 +466,7 @@ struct QRZInfoCombined  { //: Hashable
     
     static func formatFrequency(frequency: String) -> Float {
         
-        var components = frequency.trimmingCharacters(in: .whitespaces).components(separatedBy: ".")
+        let components = frequency.trimmingCharacters(in: .whitespaces).components(separatedBy: ".")
         var suffix = ""
         
         // TRY THIS
