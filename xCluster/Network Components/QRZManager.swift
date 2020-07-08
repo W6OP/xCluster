@@ -66,7 +66,7 @@ class QRZManager: NSObject {
      Get a Session Key from QRZ.com.
      - parameters:
      - name: logon name with xml plan.
-     - password: password for account.
+     - password: password for account. LetsFindSomeDXToday$56
      */
     func parseQRZSessionKeyRequest(name: String, password: String) {
         
@@ -111,6 +111,7 @@ class QRZManager: NSObject {
         sessionDictionary = [String: String]()
         dictionaryKeys = Set<String>(["call", "country", "lat", "lon", "grid", "lotw", "aliases"])
         
+         // this dies if session key is missing
         guard let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?s=\(String(self.sessionKey));callsign=\(callSign)") else {
             print("Invalid call sign: \(callSign)") // 'PY2OT  05'
             return

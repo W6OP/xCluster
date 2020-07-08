@@ -10,10 +10,12 @@ import SwiftUI
 import CallParser
 
 struct ContentView: View {
+  @ObservedObject var userSettings = UserSettings()
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   // var spots
   // var maplines
+  @State private var showPreferences = false
   
   var body: some View {
     VStack{
@@ -21,6 +23,16 @@ struct ContentView: View {
       // MARK: - band buttons.
       
       HStack{
+        // show preferences
+        Button(action: {self.showPreferences.toggle()}) {
+          Text("Configure")
+        }
+        .padding(.top, 4)
+        .sheet(isPresented: $showPreferences) {
+         
+          return PreferencesView()
+        }
+        
         BandView(bands: bands)
       }
       .padding(.top, -2).padding(.bottom, 2)
@@ -69,6 +81,7 @@ struct BandView: View {
   var bands: [BandIdentifier]
   
   var body: some View {
+    
     ForEach(bands, id: \.self) { item in
       Button(action: {selectBand(bandId: item.id)}) {
         Text(item.band)
@@ -130,6 +143,9 @@ struct ContentView_Previews: PreviewProvider {
   }
 }
 
+func configure() {
+  
+}
 
 func selectBand(bandId: Int) {
   

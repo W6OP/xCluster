@@ -13,6 +13,7 @@
 		996C151F24B6141200F58994 /* TelnetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C151E24B6141200F58994 /* TelnetManager.swift */; };
 		996C152124B6142900F58994 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C152024B6142900F58994 /* Utility.swift */; };
 		996C152324B6143A00F58994 /* QRZManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C152224B6143A00F58994 /* QRZManager.swift */; };
+		996C152524B631B800F58994 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C152424B631B800F58994 /* PreferencesView.swift */; };
 		99944E0724AFCB18004AD573 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99944E0624AFCB18004AD573 /* AppDelegate.swift */; };
 		99944E0924AFCB18004AD573 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99944E0824AFCB18004AD573 /* ContentView.swift */; };
 		99944E0B24AFCB18004AD573 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0A24AFCB18004AD573 /* Assets.xcassets */; };
@@ -44,6 +45,7 @@
 		996C151E24B6141200F58994 /* TelnetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetManager.swift; sourceTree = "<group>"; };
 		996C152024B6142900F58994 /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		996C152224B6143A00F58994 /* QRZManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZManager.swift; sourceTree = "<group>"; };
+		996C152424B631B800F58994 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		99944E0324AFCB18004AD573 /* xCluster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xCluster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		99944E0624AFCB18004AD573 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		99944E0824AFCB18004AD573 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 			children = (
 				99944E0624AFCB18004AD573 /* AppDelegate.swift */,
 				99944E0824AFCB18004AD573 /* ContentView.swift */,
+				996C152424B631B800F58994 /* PreferencesView.swift */,
 				99944E0A24AFCB18004AD573 /* Assets.xcassets */,
 				99944E0F24AFCB19004AD573 /* Main.storyboard */,
 				99944E1224AFCB19004AD573 /* Info.plist */,
@@ -215,6 +218,7 @@
 				996C151F24B6141200F58994 /* TelnetManager.swift in Sources */,
 				992E089624B246610093DD80 /* Mapping.swift in Sources */,
 				996C152324B6143A00F58994 /* QRZManager.swift in Sources */,
+				996C152524B631B800F58994 /* PreferencesView.swift in Sources */,
 				996C152124B6142900F58994 /* Utility.swift in Sources */,
 				99944E0924AFCB18004AD573 /* ContentView.swift in Sources */,
 				99944E0724AFCB18004AD573 /* AppDelegate.swift in Sources */,
