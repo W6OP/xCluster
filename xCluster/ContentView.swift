@@ -7,64 +7,43 @@
 //
 
 import SwiftUI
+import CallParser
 
 struct ContentView: View {
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
-  @State private var selectedCluster = "Select DX Spider Node"
-  @State private var callFilter = ""
+  // var spots
+  // var maplines
   
   var body: some View {
     VStack{
       
+      // MARK: - band buttons.
+      
       HStack{
         BandView(bands: bands)
       }
+      .padding(.top, -2).padding(.bottom, 2)
       .frame(maxWidth: .infinity)
       .background(Color.blue)
       .opacity(0.50)
       
+      // MARK: - mapping container.
       
-      // map view
       HStack{
-        Text("Map View")
+        MapView().edgesIgnoringSafeArea(.vertical)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       }
-      .frame(minWidth: 1024, maxWidth: 1024, minHeight: 800, maxHeight: 800)
       .border(Color.black)
+      .padding(.top, 0)
+      .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
       
-      // cluster selection and filtering
-      HStack{
-        HStack{
-          Picker(selection: $selectedCluster, label: Text("Select DX Spider Node")) {
-              ForEach(clusters) { cluster in
-                  Text("\(cluster.name):\(cluster.address):\(cluster.port)").tag(cluster.name)
-              }
-          }.frame(minWidth: 400, maxWidth: 400)
-        }
-        .padding(.trailing)
-        //.frame(maxWidth: 300)
-        
-        Spacer()
-        //  .frame(maxWidth: 100)
-        
-        HStack{
-          TextField("Call Sign", text: $callFilter)
-            .frame(maxWidth: 100)
-          Button(action: {showDX(count: 20)}) {
-              Text("show dx/20")
-          }
-          Button(action: {showDX(count: 50)}) {
-              Text("show dx/50")
-          }
-        }
-        .frame(minWidth: 500)
-        .padding(.leading)
-      }
-      .frame(maxWidth: .infinity, maxHeight: 30)
-      .background(Color.blue)
-      .opacity(0.50)
+      // MARK: - cluster selection and filtering.
       
-      // cluster display
+      ClusterView(clusters: clusters)
+      
+      // MARK: - cluster display.
+      
       HStack{
         HStack{
           Text("Data Grid")
@@ -77,14 +56,15 @@ struct ContentView: View {
         
       }
       .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
-      .background(Color.blue)
-      .opacity(0.50)
+      .padding(.vertical,0)
       
     } // end outer vstack
+    
   }
 } // end ContentView
 
-// List of band buttons
+// MARK: -  List of band buttons
+
 struct BandView: View {
   var bands: [BandIdentifier]
   
@@ -92,10 +72,64 @@ struct BandView: View {
     ForEach(bands, id: \.self) { item in
       Button(action: {selectBand(bandId: item.id)}) {
         Text(item.band)
-      }
+      }.padding(.top, 5)
     }
   }
 }
+
+// MARK: - Picker of clusters
+
+struct ClusterView: View {
+  var clusters: [ClusterIdentifier]
+  @EnvironmentObject var callLookup: CallLookup
+  @State var prefixDataList = [Hit]()
+  @State private var selectedCluster = "Select DX Spider Node"
+  @State private var callFilter = ""
+  
+  var body: some View {
+    HStack{
+      HStack{
+        Picker(selection: $selectedCluster, label: Text("")) {
+            //Text("Select DX Spider Node")
+            ForEach(clusters) { cluster in
+                Text("\(cluster.name):\(cluster.address):\(cluster.port)").tag(cluster.name)
+            }
+        }.frame(minWidth: 400, maxWidth: 400)
+      }
+      .padding(.trailing)
+      
+      Spacer()
+      
+      HStack{
+        TextField("Call Filter", text: $callFilter)
+          .frame(maxWidth: 100)
+        Button(action: {showDX(count: 20)}) {
+          Text("show dx/20")
+        }
+        Button(action: {showDX(count: 50)}) {
+            Text("show dx/50")
+        }
+      }
+      .frame(minWidth: 500)
+      .padding(.leading)
+      .padding(.vertical,2)
+      
+      Spacer()
+    }
+    .background(Color.blue)
+    .opacity(0.50)
+    .frame(maxWidth: .infinity)
+  }
+}
+
+// MARK: - Content Preview
+
+struct ContentView_Previews: PreviewProvider {
+  static var previews: some View {
+    ContentView(bands: bandData, clusters: clusterData)
+  }
+}
+
 
 func selectBand(bandId: Int) {
   
@@ -107,10 +141,4 @@ func showDX(count: Int) {
 
 func filterDx(filter: Int) {
   
-}
-
-struct ContentView_Previews: PreviewProvider {
-  static var previews: some View {
-    ContentView(bands: bandData, clusters: clusterData)
-  }
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// MARK: Band Definition
+// MARK: - Band Definition
 
 struct BandIdentifier : Identifiable, Hashable {
     var band: String
@@ -32,7 +32,7 @@ let bandData = [
     BandIdentifier(band: "6m",id: 12),
 ]
 
-/// MARK: Cluster Definition
+// MARK: - Cluster Definition
 
 struct ClusterIdentifier: Identifiable, Hashable {
     var name: String
@@ -42,6 +42,8 @@ struct ClusterIdentifier: Identifiable, Hashable {
 }
 
 let clusterData = [
+    ClusterIdentifier(name: "Select DX Spider Node", address: "", port: "", id: 99),
+  
     ClusterIdentifier(name: "WW1R_9", address: "dxc.ww1r.com", port: "7300", id: 0),
     ClusterIdentifier(name: "VE7CC", address: "dxc.ve7cc.net", port: "23", id: 1),
     ClusterIdentifier(name: "dxc_middlebrook_ca", address: "dxc.middlebrook.ca", port: "8000", id: 2),
@@ -58,3 +60,41 @@ let clusterData = [
     // telnet.reversebeacon.net port 7000, for CW and RTTY spots
     ClusterIdentifier(name: "All RBN", address: "telnet.reversebeacon.net", port: "7000", id: 10),
 ]
+
+/**
+  // MARK: - ClusterSpots ----------------------------------------------------------------------------
+
+ // spot for display in tableview
+ class ClusterSpots : NSObject {
+     
+     @objc dynamic var dx: String
+     @objc dynamic var frequency: String
+     @objc dynamic var spotter: String
+     @objc dynamic var datetime: String
+     @objc dynamic var comment: String
+     @objc dynamic var grid: String
+     
+     override init() {
+         dx = "W6OP"
+         frequency = "10000"
+         spotter = "W6OP"
+         datetime = "1200"
+         comment = "Comment"
+         grid = "CM98ha"
+         
+         super.init()
+     }
+     
+     init(dx:String, frequency:String, spotter:String, comment:String, datetime:String,  grid:String) {
+         self.dx = dx
+         self.frequency = frequency
+         self.spotter = spotter
+         self.datetime = datetime
+         self.comment = comment
+         self.grid = grid
+         
+         super.init()
+     }
+ }
+ 
+ */

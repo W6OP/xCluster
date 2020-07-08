@@ -7,16 +7,43 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		992E089624B246610093DD80 /* Mapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992E089524B246610093DD80 /* Mapping.swift */; };
 		996588A624B0F3930007260B /* Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996588A524B0F3930007260B /* Bindings.swift */; };
+		996C151D24B613F600F58994 /* SpotProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C151C24B613F600F58994 /* SpotProcessor.swift */; };
+		996C151F24B6141200F58994 /* TelnetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C151E24B6141200F58994 /* TelnetManager.swift */; };
+		996C152124B6142900F58994 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C152024B6142900F58994 /* Utility.swift */; };
+		996C152324B6143A00F58994 /* QRZManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C152224B6143A00F58994 /* QRZManager.swift */; };
 		99944E0724AFCB18004AD573 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99944E0624AFCB18004AD573 /* AppDelegate.swift */; };
 		99944E0924AFCB18004AD573 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99944E0824AFCB18004AD573 /* ContentView.swift */; };
 		99944E0B24AFCB18004AD573 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0A24AFCB18004AD573 /* Assets.xcassets */; };
 		99944E0E24AFCB18004AD573 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0D24AFCB18004AD573 /* Preview Assets.xcassets */; };
 		99944E1124AFCB19004AD573 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0F24AFCB19004AD573 /* Main.storyboard */; };
+		99D1EA4024B3B12600ACC78B /* CallParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99D1EA3F24B3B12600ACC78B /* CallParser.framework */; };
+		99D1EA4124B3B12600ACC78B /* CallParser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 99D1EA3F24B3B12600ACC78B /* CallParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		99D1EA4424B3B33E00ACC78B /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D1EA4324B3B33E00ACC78B /* Controller.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		99D1EA4224B3B12600ACC78B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				99D1EA4124B3B12600ACC78B /* CallParser.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		992E089524B246610093DD80 /* Mapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapping.swift; sourceTree = "<group>"; };
 		996588A524B0F3930007260B /* Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
+		996C151C24B613F600F58994 /* SpotProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotProcessor.swift; sourceTree = "<group>"; };
+		996C151E24B6141200F58994 /* TelnetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetManager.swift; sourceTree = "<group>"; };
+		996C152024B6142900F58994 /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
+		996C152224B6143A00F58994 /* QRZManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZManager.swift; sourceTree = "<group>"; };
 		99944E0324AFCB18004AD573 /* xCluster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xCluster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		99944E0624AFCB18004AD573 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		99944E0824AFCB18004AD573 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -25,6 +52,8 @@
 		99944E1024AFCB19004AD573 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		99944E1224AFCB19004AD573 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99944E1324AFCB19004AD573 /* xCluster.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xCluster.entitlements; sourceTree = "<group>"; };
+		99D1EA3F24B3B12600ACC78B /* CallParser.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallParser.framework; path = ../../Library/Frameworks/CallParser.framework; sourceTree = "<group>"; };
+		99D1EA4324B3B33E00ACC78B /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,17 +61,40 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99D1EA4024B3B12600ACC78B /* CallParser.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		996C151A24B6137C00F58994 /* Display Components */ = {
+			isa = PBXGroup;
+			children = (
+				996588A524B0F3930007260B /* Bindings.swift */,
+				99D1EA4324B3B33E00ACC78B /* Controller.swift */,
+				992E089524B246610093DD80 /* Mapping.swift */,
+			);
+			path = "Display Components";
+			sourceTree = "<group>";
+		};
+		996C151B24B613B800F58994 /* Network Components */ = {
+			isa = PBXGroup;
+			children = (
+				996C151C24B613F600F58994 /* SpotProcessor.swift */,
+				996C151E24B6141200F58994 /* TelnetManager.swift */,
+				996C152024B6142900F58994 /* Utility.swift */,
+				996C152224B6143A00F58994 /* QRZManager.swift */,
+			);
+			path = "Network Components";
+			sourceTree = "<group>";
+		};
 		99944DFA24AFCB18004AD573 = {
 			isa = PBXGroup;
 			children = (
 				99944E0524AFCB18004AD573 /* xCluster */,
 				99944E0424AFCB18004AD573 /* Products */,
+				99D1EA3E24B3B12600ACC78B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -64,7 +116,8 @@
 				99944E1224AFCB19004AD573 /* Info.plist */,
 				99944E1324AFCB19004AD573 /* xCluster.entitlements */,
 				99944E0C24AFCB18004AD573 /* Preview Content */,
-				996588A524B0F3930007260B /* Bindings.swift */,
+				996C151A24B6137C00F58994 /* Display Components */,
+				996C151B24B613B800F58994 /* Network Components */,
 			);
 			path = xCluster;
 			sourceTree = "<group>";
@@ -77,6 +130,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		99D1EA3E24B3B12600ACC78B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				99D1EA3F24B3B12600ACC78B /* CallParser.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -87,6 +148,7 @@
 				99944DFF24AFCB18004AD573 /* Sources */,
 				99944E0024AFCB18004AD573 /* Frameworks */,
 				99944E0124AFCB18004AD573 /* Resources */,
+				99D1EA4224B3B12600ACC78B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -148,6 +210,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99D1EA4424B3B33E00ACC78B /* Controller.swift in Sources */,
+				996C151D24B613F600F58994 /* SpotProcessor.swift in Sources */,
+				996C151F24B6141200F58994 /* TelnetManager.swift in Sources */,
+				992E089624B246610093DD80 /* Mapping.swift in Sources */,
+				996C152324B6143A00F58994 /* QRZManager.swift in Sources */,
+				996C152124B6142900F58994 /* Utility.swift in Sources */,
 				99944E0924AFCB18004AD573 /* ContentView.swift in Sources */,
 				99944E0724AFCB18004AD573 /* AppDelegate.swift in Sources */,
 				996588A624B0F3930007260B /* Bindings.swift in Sources */,
@@ -292,6 +360,10 @@
 				DEVELOPMENT_TEAM = JE278GX57V;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
 				INFOPLIST_FILE = xCluster/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -315,6 +387,10 @@
 				DEVELOPMENT_TEAM = JE278GX57V;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
 				INFOPLIST_FILE = xCluster/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

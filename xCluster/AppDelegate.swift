@@ -8,6 +8,7 @@
 
 import Cocoa
 import SwiftUI
+import CallParser
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -16,8 +17,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
+    
+    let controller = Controller()
     // Create the SwiftUI view that provides the window contents.
     let contentView = ContentView()
+      .environmentObject(controller)
 
     // Create the window and set the content view. 
     window = NSWindow(
