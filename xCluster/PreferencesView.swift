@@ -10,13 +10,45 @@ import SwiftUI
 
 struct PreferencesView: View {
   @Environment(\.presentationMode) var presentationMode
-  @State private var userName = "W6OP"
-  @State private var password = "LetsFindSomeDXToday$56"
-  @State private var showPreferences = false
   @ObservedObject var userSettings = UserSettings()
+  @State private var userName = ""
+  @State private var password = ""
+  @State private var fullname = ""
+  @State private var location = ""
+  @State private var grid = ""
+  @State private var showPreferences = false
+  
   
   var body: some View {
     VStack{
+      HStack{
+        Form {
+          Section(header: Text("General Information")) {
+            HStack{
+              Text("Full Name")
+              TextField("First and Last Name", text: $userSettings.fullname)
+              .frame(minWidth: 230, maxWidth: 230)
+            }
+            HStack{
+              Text("Location")
+              Spacer()
+              TextField("City, State", text: $userSettings.location)
+              .frame(minWidth: 230, maxWidth: 230)
+            }
+            HStack{
+              Text("Grid")
+              Spacer()
+              TextField("Grid", text: $userSettings.grid)
+              .frame(minWidth: 230, maxWidth: 230)
+            }
+          }
+        }
+      }
+      
+      HStack{
+        Spacer()
+      }
+      
       HStack{
         Form {
           Section(header: Text("QRZ Credentials")) {
@@ -30,14 +62,15 @@ struct PreferencesView: View {
                 .frame(minWidth: 18, maxWidth: 18)
               SecureField("Password", text: $userSettings.password)
             }
-            Button(action: {savePreferences(); self.presentationMode.wrappedValue.dismiss()}) {
+            Button(action: {self.presentationMode.wrappedValue.dismiss()}) {
               Text("Close")
             }
           }
         }
       }
-      .frame(minWidth: 275,maxWidth: 275)
+      //.frame(minWidth: 275,maxWidth: 275)
     }
+      .frame(minWidth: 300,maxWidth: 300)
     .padding(5)
   }
 }
@@ -48,6 +81,3 @@ struct PreferencesView_Previews: PreviewProvider {
   }
 }
 
-func savePreferences() {
-  
-}
