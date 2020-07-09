@@ -31,35 +31,35 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
       attributes: .concurrent)
   
   @Published var spots = [Spots]()
-  @Published var telnetMessage = ""
+  @Published var statusMessage = ""
+  @Published var haveSessionKey = false
   
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
   
-  let fullname = UserDefaults.standard.string(forKey: "location") ?? ""
-  let location = UserDefaults.standard.string(forKey: "grid") ?? ""
-  let grid = UserDefaults.standard.string(forKey: "fullname") ?? ""
+  let callsign = UserDefaults.standard.string(forKey: "callsign") ?? ""
+  let fullname = UserDefaults.standard.string(forKey: "fullname") ?? ""
+  let location = UserDefaults.standard.string(forKey: "location") ?? ""
+  let grid = UserDefaults.standard.string(forKey: "grid") ?? ""
   let qrzUsername = UserDefaults.standard.string(forKey: "username") ?? ""
   let qrzPassword = UserDefaults.standard.string(forKey: "password") ?? ""
   
   
   // MARK: - Protocol Delegate Implementation
   
-  
   /**
-   Initial Connect
+   Connect to a cluster
    */
-  func  connect(clusterAddress: String, clusterPort: String) {
+  func  connect(clusterName: String) {
     
-    //      if !clusterAddress.isEmpty {
-    //          let comment = ("Connecting to \(clusterAddress)")
-    //
+    let cluster = clusterData.first(where: {$0.name == clusterName})
+    
+    if !cluster!.address.isEmpty {
+      telnetManager.connect(host: cluster!.address, port: cluster!.port)
+    }
     //          // show an entry in the tableview
     //          clusterSpotArray.insert(ClusterSpots(dx: "----------", frequency: "----------", spotter: "----------", comment: comment, datetime: "----",grid: "----"), at: 0)
-    //
-    //          telnetManager.connect(host: clusterAddress, port: String(clusterPort))
-    //      }
   }
   
   /**
@@ -74,15 +74,15 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     case .LOGON:
       self.sendLogin()
     case .WAITING:
-      self.telnetMessage = message.appendingFormat("\n")
-      //                   self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    //                   telnetMessage = self.statusMessages.string.appendingFormat(message)
+      self.statusMessage = message.appendingFormat("\n")
+      self.statusMessage = message.appendingFormat(message)
+      // self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
+    // self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
     case .ERROR:
-      self.telnetMessage = message.appendingFormat("\n")
-      //                   self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    //                   self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
+      self.statusMessage = message.appendingFormat("\n")
+      self.statusMessage = message.appendingFormat(message)
     case .CALL:
-      self.sendClusterCommand(message: "W6OP", commandType: CommandType.LOGON)
+      self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
     case .NAME:
       self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
     case .QTH:
@@ -90,13 +90,11 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     case .LOCATION:
       self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
     case .INFO:
-      self.telnetMessage = message.appendingFormat("\n")
-      //self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    //self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
+      self.statusMessage = message.appendingFormat("\n")
+      self.statusMessage = message.appendingFormat(message)
     default:
-      self.telnetMessage = message.appendingFormat("\n")
-      //self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-      //self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
+      self.statusMessage = message.appendingFormat("\n")
+      self.statusMessage = message.appendingFormat(message)
     }
   }
   
@@ -108,50 +106,51 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
    - message: message text.
    */
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
-    //         switch messageKey {
-    //         case .CLUSTERTYPE:
-    //             UI {
-    //                 self.clusterTypeLabel.stringValue = message.condenseWhitespace()
-    //             }
-    //         case .ANNOUNCEMENT:
-    //             UI {
-    //                 self.annoucementsLabel.stringValue = message.condenseWhitespace()
-    //             }
-    //         case .INFO:
-    //             UI {
-    //                 self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    //                 self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
-    //             }
-    //         case .ERROR:
-    //             UI {
-    //                 self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    //                 self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
-    //             }
-    //         case .SPOTRECEIVED:
-    //             UI {
-    //                 self.updateClusterSpotsEx(message: message, messageType: messageKey)
-    //             }
-    //         case .SHOWDXSPOTS:
-    //             UI {
-    //                 self.updateClusterSpotsEx(message: message, messageType: messageKey)
-    //             }
-    //         default:
-    //             break
-    //         }
+             switch messageKey {
+             case .CLUSTERTYPE:
+//                 UI {
+//                     self.clusterTypeLabel.stringValue = message.condenseWhitespace()
+//                 }
+              break
+             case .ANNOUNCEMENT:
+//                 UI {
+//                     self.annoucementsLabel.stringValue = message.condenseWhitespace()
+//                 }
+              break
+             case .INFO:
+                 UI {
+                    self.statusMessage = message.appendingFormat("\n")
+                     self.statusMessage = message.appendingFormat(message)
+                 }
+             case .ERROR:
+                 UI {
+                    self.statusMessage = message.appendingFormat("\n")
+                     self.statusMessage = message.appendingFormat(message)
+                 }
+             case .SPOTRECEIVED:
+                 //UI {
+                     self.updateClusterSpots(message: message, messageType: messageKey)
+                 //}
+             case .SHOWDXSPOTS:
+                 //UI {
+                     self.updateClusterSpots(message: message, messageType: messageKey)
+                 //}
+             default:
+                 break
+             }
   }
   
   /**
-   QRZ Manager protocol - Receive the session key from QRZ.com.
+   QRZ Manager protocol - Retieve the session key from QRZ.com.
    - parameters:
    - qrzManager: Reference to the class sending the message.
    - messageKey: Key associated with this message.
    - message: message text.
    */
   func qrzManagerdidGetSessionKey(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, haveSessionKey: Bool) {
-    //         UI {
-    //             self.haveSessionKey = haveSessionKey
-    //             print("Session key arrived")
-    //         }
+    
+    self.haveSessionKey = haveSessionKey
+    print("Session key arrived")
   }
   
   /**
@@ -218,7 +217,9 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     }
   }
   
-  
+    func updateClusterSpots(message: String, messageType: TelnetManagerMessage){
+      
+  }
 } // end class
 
 // MARK: - Get the QRZ Session Key
@@ -229,6 +230,13 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
 
 // https://www.simpleswiftguide.com/how-to-use-userdefaults-in-swiftui/
 class UserSettings: ObservableObject {
+  
+  @Published var callsign: String {
+    didSet {
+      UserDefaults.standard.set(callsign.uppercased(), forKey: "callsign")
+    }
+  }
+  
   @Published var fullname: String {
     didSet {
       UserDefaults.standard.set(fullname, forKey: "fullname")
@@ -260,6 +268,7 @@ class UserSettings: ObservableObject {
   }
   
   init() {
+    self.callsign = UserDefaults.standard.string(forKey: "callsign") ?? ""
     self.username = UserDefaults.standard.string(forKey: "username") ?? ""
     self.password = UserDefaults.standard.string(forKey: "password") ?? ""
     self.fullname = UserDefaults.standard.string(forKey: "fullname") ?? ""

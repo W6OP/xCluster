@@ -74,7 +74,7 @@ class QRZManager: NSObject {
         dictionaryKeys = Set<String>(["Key", "Count", "SubExp", "GMTime", "Remark"])
         
         let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?username=\(name);password=\(password);VirtualCluster=1.0")
-        
+      
         let parser = XMLParser(contentsOf: urlString!)!
         
         parser.delegate = self
@@ -82,7 +82,7 @@ class QRZManager: NSObject {
             print(self.results ?? "No results")
             self.sessionKey = self.sessionDictionary?["Key"]?.trimmingCharacters(in: .whitespaces)
             self.haveSessionKey = true
-                self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .SESSION, haveSessionKey: true)
+            self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .SESSION, haveSessionKey: true)
         }
     }
     

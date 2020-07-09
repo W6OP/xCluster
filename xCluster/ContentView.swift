@@ -11,6 +11,7 @@ import CallParser
 
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
+  @ObservedObject var controller = Controller()
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   // var spots
@@ -90,24 +91,29 @@ struct BandView: View {
   }
 }
 
-// MARK: - Picker of clusters
+// MARK: - Picker of Cluster Names
 
 struct ClusterView: View {
-  var clusters: [ClusterIdentifier]
+
   @EnvironmentObject var callLookup: CallLookup
+  @ObservedObject var controller = Controller()
   @State var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
+  var clusters: [ClusterIdentifier]
   
   var body: some View {
     HStack{
       HStack{
         Picker(selection: $selectedCluster, label: Text("")) {
-            //Text("Select DX Spider Node")
             ForEach(clusters) { cluster in
                 Text("\(cluster.name):\(cluster.address):\(cluster.port)").tag(cluster.name)
             }
         }.frame(minWidth: 400, maxWidth: 400)
+        Button(action: {self.controller.connect(clusterName: "\(self.selectedCluster)")}) {
+          Text("Connect")
+        }
+        .disabled(controller.haveSessionKey == false)
       }
       .padding(.trailing)
       
@@ -115,6 +121,7 @@ struct ClusterView: View {
       
       HStack{
         TextField("Call Filter", text: $callFilter)
+          .textFieldStyle(RoundedBorderTextFieldStyle())
           .frame(maxWidth: 100)
         Button(action: {showDX(count: 20)}) {
           Text("show dx/20")
@@ -156,5 +163,11 @@ func showDX(count: Int) {
 }
 
 func filterDx(filter: Int) {
+  
+}
+
+// disConnect()
+//connect(clusterAddress: cluster.clusterAddress, clusterPort: cluster.clusterPort)
+func connect(clusterName: String) {
   
 }

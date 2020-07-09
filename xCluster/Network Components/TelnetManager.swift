@@ -13,7 +13,7 @@ import os
 @available(OSX 10.15, *)
 protocol TelnetManagerDelegate: class {
     
-    func connect(clusterAddress: String, clusterPort: String)
+    func connect(clusterName: String)
     
     func telnetManagerStatusMessageReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String)
     
@@ -77,7 +77,7 @@ class TelnetManager {
                 self.connectionChanged = true
                 self.clusterType = .UNKNOWN
                 
-                    self.telnetManagerDelegate?.telnetManagerStatusMessageReceived(self, messageKey: .CONNECTED, message: "Connected to \(host)")
+                self.telnetManagerDelegate?.telnetManagerStatusMessageReceived(self, messageKey: .CONNECTED, message: "Connected to \(host)")
   
                 print("Connected")
                 
