@@ -9,9 +9,16 @@
 import SwiftUI
 import CallParser
 
+//extension EnvironmentObject
+//{
+//  var safeToUse: Bool {
+//    return (Mirror(reflecting: self).children.first(where: { $0.label == "_store"})?.value as? ObjectType) != nil
+//  }
+//}
+
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
-  @ObservedObject var controller = Controller()
+  @EnvironmentObject var controller: Controller
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   // var spots
@@ -53,7 +60,8 @@ struct ContentView: View {
       
       // MARK: - cluster selection and filtering.
       
-      ClusterView(clusters: clusters)
+//      ClusterView(controller: controller, clusters: clusters)
+//        .environmentObject(controller)
       
       // MARK: - cluster display.
       
@@ -63,8 +71,13 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         HStack{
-          Text("Cluster Commands")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+          ScrollView{
+            Text("Test")
+              .frame(maxWidth: .infinity, maxHeight: 290)
+            }
+//          Text(controller.statusMessage)
+//            .frame(maxWidth: .infinity, maxHeight: 290)
+//          }
         }
         
       }
@@ -95,8 +108,7 @@ struct BandView: View {
 
 struct ClusterView: View {
 
-  @EnvironmentObject var callLookup: CallLookup
-  @ObservedObject var controller = Controller()
+  var controller: Controller
   @State var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
@@ -145,8 +157,11 @@ struct ClusterView: View {
 // MARK: - Content Preview
 
 struct ContentView_Previews: PreviewProvider {
+  @EnvironmentObject var controller: Controller
+  
   static var previews: some View {
     ContentView(bands: bandData, clusters: clusterData)
+    
   }
 }
 

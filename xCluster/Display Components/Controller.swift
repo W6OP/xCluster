@@ -56,6 +56,7 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
     if !cluster!.address.isEmpty {
+      self.statusMessage = ""
       telnetManager.connect(host: cluster!.address, port: cluster!.port)
     }
     //          // show an entry in the tableview
@@ -74,13 +75,19 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     case .LOGON:
       self.sendLogin()
     case .WAITING:
+      UI {
       self.statusMessage = message.appendingFormat("\n")
-      self.statusMessage = message.appendingFormat(message)
+      self.statusMessage += message.appendingFormat(message)
+        print("status 1: \(self.statusMessage)")
+      }
       // self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
     // self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
     case .ERROR:
-      self.statusMessage = message.appendingFormat("\n")
-      self.statusMessage = message.appendingFormat(message)
+      UI {
+      self.statusMessage += message.appendingFormat("\n")
+      self.statusMessage += message.appendingFormat(message)
+        print("status 2: \(self.statusMessage)")
+      }
     case .CALL:
       self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
     case .NAME:
@@ -90,11 +97,17 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     case .LOCATION:
       self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
     case .INFO:
-      self.statusMessage = message.appendingFormat("\n")
-      self.statusMessage = message.appendingFormat(message)
+      UI {
+      self.statusMessage += message.appendingFormat("\n")
+      self.statusMessage += message.appendingFormat(message)
+        print("status 3: \(self.statusMessage)")
+      }
     default:
-      self.statusMessage = message.appendingFormat("\n")
-      self.statusMessage = message.appendingFormat(message)
+      UI {
+      self.statusMessage += message.appendingFormat("\n")
+      self.statusMessage += message.appendingFormat(message)
+        print("status 4: \(self.statusMessage)")
+      }
     }
   }
   
@@ -108,33 +121,39 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
              switch messageKey {
              case .CLUSTERTYPE:
-//                 UI {
-//                     self.clusterTypeLabel.stringValue = message.condenseWhitespace()
-//                 }
+                 UI {
+                  self.statusMessage += message.condenseWhitespace()
+                  print("status 5: \(self.statusMessage)")
+                     //self.clusterTypeLabel.stringValue = message.condenseWhitespace()
+                 }
               break
              case .ANNOUNCEMENT:
-//                 UI {
-//                     self.annoucementsLabel.stringValue = message.condenseWhitespace()
-//                 }
+                 UI {
+                    self.statusMessage += message.condenseWhitespace()
+                  print("status 6: \(self.statusMessage)")
+                     //self.annoucementsLabel.stringValue = message.condenseWhitespace()
+                 }
               break
              case .INFO:
                  UI {
-                    self.statusMessage = message.appendingFormat("\n")
-                     self.statusMessage = message.appendingFormat(message)
+                    self.statusMessage += message.appendingFormat("\n")
+                     self.statusMessage += message.appendingFormat(message)
+                  print("status 7: \(self.statusMessage)")
                  }
              case .ERROR:
                  UI {
-                    self.statusMessage = message.appendingFormat("\n")
-                     self.statusMessage = message.appendingFormat(message)
+                    self.statusMessage += message.appendingFormat("\n")
+                     self.statusMessage += message.appendingFormat(message)
+                  print("status 8: \(self.statusMessage)")
                  }
              case .SPOTRECEIVED:
-                 //UI {
+                 UI {
                      self.updateClusterSpots(message: message, messageType: messageKey)
-                 //}
+                 }
              case .SHOWDXSPOTS:
-                 //UI {
+                 UI {
                      self.updateClusterSpots(message: message, messageType: messageKey)
-                 //}
+                 }
              default:
                  break
              }
