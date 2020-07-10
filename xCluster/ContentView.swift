@@ -18,7 +18,7 @@ import CallParser
 
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
-  @EnvironmentObject var controller: Controller
+  @ObservedObject var controller: Controller
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   // var spots
@@ -60,8 +60,8 @@ struct ContentView: View {
       
       // MARK: - cluster selection and filtering.
       
-//      ClusterView(controller: controller, clusters: clusters)
-//        .environmentObject(controller)
+      ClusterView(controller: controller, clusters: clusters)
+        .environmentObject(controller)
       
       // MARK: - cluster display.
       
@@ -72,12 +72,9 @@ struct ContentView: View {
         }
         HStack{
           ScrollView{
-            Text("Test")
-              .frame(maxWidth: .infinity, maxHeight: 290)
-            }
-//          Text(controller.statusMessage)
-//            .frame(maxWidth: .infinity, maxHeight: 290)
-//          }
+          Text(controller.statusMessage)
+            .frame(maxWidth: .infinity, maxHeight: 290)
+          }
         }
         
       }
@@ -157,11 +154,9 @@ struct ClusterView: View {
 // MARK: - Content Preview
 
 struct ContentView_Previews: PreviewProvider {
-  @EnvironmentObject var controller: Controller
-  
   static var previews: some View {
-    ContentView(bands: bandData, clusters: clusterData)
-    
+    //ContentView(bands: bandData, clusters: clusterData)
+    ContentView(controller: Controller())
   }
 }
 
