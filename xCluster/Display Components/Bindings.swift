@@ -61,6 +61,19 @@ let clusterData = [
     ClusterIdentifier(name: "All RBN", address: "telnet.reversebeacon.net", port: "7000", id: 10),
 ]
 
+//struct ClusterSpot: Identifiable, Hashable {
+//  var dx: String
+//  var frequency: String
+//  var spotter: String
+//  var datetime: String
+//  var comment: String
+//  var grid: String
+//  
+//  var id: Int
+//}
+//
+//let clusterSpots = ClusterSpot(dx: "----------", frequency: "----------", spotter: "----------", datetime: "----", comment: "-------",grid: "----", id: 0)
+
 /**
   // MARK: - ClusterSpots ----------------------------------------------------------------------------
 

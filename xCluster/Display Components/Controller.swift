@@ -13,8 +13,8 @@ import Combine
 
 // MARK: - ClusterSpots
 
-struct Spots: Identifiable, Hashable {
-  var id: ObjectIdentifier
+struct ClusterSpot: Identifiable, Hashable {
+  var id: Int
   var dxStation: String
   var frequency: String
   var spotter: String
@@ -30,8 +30,8 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
       label: "com.w6op.virtualcluster.spotProcessorQueue",
       attributes: .concurrent)
   
-  @Published var spots = [Spots]()
-  @Published var statusMessage = ""
+  @Published var spots = [ClusterSpot]()
+  @Published var statusMessage = [String]()
   @Published var haveSessionKey = false
   
   var qrzManager = QRZManager()
@@ -56,7 +56,7 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
     if !cluster!.address.isEmpty {
-      self.statusMessage = ""
+      self.statusMessage = [String]()
       telnetManager.connect(host: cluster!.address, port: cluster!.port)
     }
     //          // show an entry in the tableview
@@ -72,43 +72,40 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
    */
   func telnetManagerStatusMessageReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
     switch messageKey {
-    case .LOGON:
-      self.sendLogin()
-    case .WAITING:
-      UI {
-      self.statusMessage = message.appendingFormat("\n")
-      self.statusMessage += message.appendingFormat(message)
-        print("status 1: \(self.statusMessage)")
+      case .LOGON:
+        self.sendLogin()
+      case .WAITING:
+        UI {
+          //self.statusMessage.append(message.appendingFormat("\n"))
+          self.statusMessage.append(message.appendingFormat(message))
+        }
+        // self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
+      // self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
+      case .ERROR:
+        UI {
+          //self.statusMessage.append(message.appendingFormat("\n"))
+          self.statusMessage.append(message.appendingFormat(message))
+        }
+      case .CALL:
+        self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
+      case .NAME:
+        self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
+      case .QTH:
+        self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.QTH)
+      case .LOCATION:
+        self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
+      case .INFO:
+        UI {
+          //self.statusMessage.append(message.appendingFormat("\n"))
+          self.statusMessage.append(message.appendingFormat(message))
+        }
+      default:
+        UI {
+          //self.statusMessage.append(message.appendingFormat("\n"))
+          self.statusMessage.append(message.appendingFormat(message))
+          //print(self.statusMessage)
+        }
       }
-      // self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-    // self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
-    case .ERROR:
-      UI {
-      self.statusMessage += message.appendingFormat("\n")
-      self.statusMessage += message.appendingFormat(message)
-        print("status 2: \(self.statusMessage)")
-      }
-    case .CALL:
-      self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
-    case .NAME:
-      self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
-    case .QTH:
-      self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.QTH)
-    case .LOCATION:
-      self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
-    case .INFO:
-      UI {
-      self.statusMessage += message.appendingFormat("\n")
-      self.statusMessage += message.appendingFormat(message)
-        print("status 3: \(self.statusMessage)")
-      }
-    default:
-      UI {
-      self.statusMessage += message.appendingFormat("\n")
-      self.statusMessage += message.appendingFormat(message)
-        print("status 4: \(self.statusMessage)")
-      }
-    }
   }
   
   /**
@@ -119,44 +116,40 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
    - message: message text.
    */
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
-             switch messageKey {
-             case .CLUSTERTYPE:
-                 UI {
-                  self.statusMessage += message.condenseWhitespace()
-                  print("status 5: \(self.statusMessage)")
-                     //self.clusterTypeLabel.stringValue = message.condenseWhitespace()
-                 }
-              break
-             case .ANNOUNCEMENT:
-                 UI {
-                    self.statusMessage += message.condenseWhitespace()
-                  print("status 6: \(self.statusMessage)")
-                     //self.annoucementsLabel.stringValue = message.condenseWhitespace()
-                 }
-              break
-             case .INFO:
-                 UI {
-                    self.statusMessage += message.appendingFormat("\n")
-                     self.statusMessage += message.appendingFormat(message)
-                  print("status 7: \(self.statusMessage)")
-                 }
-             case .ERROR:
-                 UI {
-                    self.statusMessage += message.appendingFormat("\n")
-                     self.statusMessage += message.appendingFormat(message)
-                  print("status 8: \(self.statusMessage)")
-                 }
-             case .SPOTRECEIVED:
-                 UI {
-                     self.updateClusterSpots(message: message, messageType: messageKey)
-                 }
-             case .SHOWDXSPOTS:
-                 UI {
-                     self.updateClusterSpots(message: message, messageType: messageKey)
-                 }
-             default:
-                 break
-             }
+    switch messageKey {
+    case .CLUSTERTYPE:
+      UI {
+        self.statusMessage.append(message.condenseWhitespace())
+        //self.clusterTypeLabel.stringValue = message.condenseWhitespace()
+      }
+      break
+    case .ANNOUNCEMENT:
+      UI {
+        self.statusMessage.append(message.condenseWhitespace())
+        //self.annoucementsLabel.stringValue = message.condenseWhitespace()
+      }
+      break
+    case .INFO:
+      UI {
+        //self.statusMessage.append(message.appendingFormat("\n"))
+        self.statusMessage.append(message.appendingFormat(message))
+      }
+    case .ERROR:
+      UI {
+        //self.statusMessage.append(message.appendingFormat("\n"))
+        self.statusMessage.append(message.appendingFormat(message))
+      }
+    case .SPOTRECEIVED:
+      UI {
+        self.parseClusterSpot(message: message, messageType: messageKey)
+      }
+    case .SHOWDXSPOTS:
+      UI {
+        self.parseClusterSpot(message: message, messageType: messageKey)
+      }
+    default:
+      break
+    }
   }
   
   /**
@@ -236,8 +229,25 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     }
   }
   
-    func updateClusterSpots(message: String, messageType: TelnetManagerMessage){
+  func parseClusterSpot(message: String, messageType: TelnetManagerMessage){
+    do {
+        let spot = try self.spotProcessor.processRawSpot(rawSpot: message)
+        self.spots.insert(spot, at: 0)
+        
+//        if self.haveSessionKey {
+//            DispatchQueue.global(qos: .background).async { [weak self] in
+//                _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
+//            }
+//        }
       
+      if spots.count > 100 {
+        spots.remove(at: spots.count - 1)
+      }
+    }
+    catch {
+        print("Error: \(error)")
+        return
+    }
   }
 } // end class
 

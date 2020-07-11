@@ -19,10 +19,10 @@ class SpotProcessor {
     
     //      12 chars
     // DX de LY3AB:     1887.0  LY2RJ        cq cq cq                       1743Z KO25
-    func processRawSpot(rawSpot: String) throws -> ClusterSpots  {
+    func processRawSpot(rawSpot: String) throws -> ClusterSpot  {
         
         //let clusterSpot = ClusterSpot()
-        let spot = ClusterSpots(dx: "", frequency: "", spotter: "", comment: "",datetime: "",grid: "")
+      var spot = ClusterSpot(id: 0, dxStation: "", frequency: "", spotter: "", dateTime: "",comment: "",grid: "")
         
         if rawSpot.count < 75 {
             print("\(rawSpot.count) -- \(rawSpot)")
@@ -43,7 +43,7 @@ class SpotProcessor {
         
         startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 26)
         endIndex = rawSpot.index(startIndex, offsetBy: 11)
-        spot.dx = convertStringSliceToString(String(rawSpot[startIndex..<endIndex]))
+        spot.dxStation = convertStringSliceToString(String(rawSpot[startIndex..<endIndex]))
         
         startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 39)
         endIndex = rawSpot.index(startIndex, offsetBy: 30)
@@ -52,7 +52,7 @@ class SpotProcessor {
         startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 70)
         endIndex = rawSpot.index(startIndex, offsetBy: 5)
         // clean of junk on end so it displays correctly when no grid supplied
-        spot.datetime = convertStringSliceToString(String(rawSpot[startIndex..<endIndex])).condenseWhitespace()
+        spot.dateTime = convertStringSliceToString(String(rawSpot[startIndex..<endIndex])).condenseWhitespace()
         
         endIndex = rawSpot.endIndex
         startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 75)

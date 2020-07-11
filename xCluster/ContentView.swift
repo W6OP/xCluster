@@ -9,13 +9,6 @@
 import SwiftUI
 import CallParser
 
-//extension EnvironmentObject
-//{
-//  var safeToUse: Bool {
-//    return (Mirror(reflecting: self).children.first(where: { $0.label == "_store"})?.value as? ObjectType) != nil
-//  }
-//}
-
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
   @ObservedObject var controller: Controller
@@ -67,24 +60,120 @@ struct ContentView: View {
       
       HStack{
         HStack{
-          Text("Data Grid")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        HStack{
-          ScrollView{
-          Text(controller.statusMessage)
-            .frame(maxWidth: .infinity, maxHeight: 290)
+          ScrollView {
+          VStack{
+            SpotHeader()
+            ForEach(controller.spots, id: \.self) { spot in
+            SpotRow(spot: spot)
+            }
+//            ForEach(controller.spots, id: \.self) { spot in
+//            HStack{
+//              Text("\(spot.dxStation) | \(spot.frequency) | \(spot.spotter) | \(spot.dateTime) | \(spot.comment) | \(spot.grid)")
+//              Spacer()
+//            }
+//            .frame(maxHeight: 15)
+//            .padding(.leading, 5)
+//            .border(Color.green)
+//          }
+        }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+          //.border(Color.green)
           }
         }
-        
+        .border(Color.green)
+        HStack{
+          ScrollView {
+          VStack{
+          ForEach(controller.statusMessage, id: \.self) { message in
+            HStack{
+              Text(message)
+              Spacer()
+            }
+            .frame(maxHeight: 15)
+            .lineLimit(nil)
+            .multilineTextAlignment(.leading)
+          }
+        }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+          .border(Color.green)
+          }
+        }
+        .border(Color.red)
       }
       .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
       .padding(.vertical,0)
       
     } // end outer vstack
+      .frame(minWidth: 1024)
     
   }
 } // end ContentView
+
+// MARK: - Spot Header
+
+struct SpotHeader: View {
+   var body: some View {
+    
+    HStack(){
+      Text("DX")
+        .lineLimit(nil)
+        .multilineTextAlignment(.leading)
+        .frame(minWidth: 50)
+      Text("Frequency")
+        .lineLimit(nil)
+        .multilineTextAlignment(.leading)
+      .frame(minWidth: 70)
+      Text("Spotter")
+      .frame(minWidth: 50)
+      .lineLimit(nil)
+      .multilineTextAlignment(.leading)
+      Text("Time")
+        .lineLimit(nil)
+        .multilineTextAlignment(.leading)
+      .frame(minWidth: 50)
+      Text("Comment")
+        .lineLimit(nil)
+        .multilineTextAlignment(.leading)
+      .frame(minWidth: 200)
+      Text("Grid")
+        .lineLimit(nil)
+        .multilineTextAlignment(.leading)
+      .frame(minWidth: 50)
+      //Spacer()
+    }
+  }
+}
+
+// MARK: - Spot Row
+
+struct SpotRow: View {
+  var spot: ClusterSpot
+  
+   var body: some View {
+      HStack{
+        Text(spot.dxStation)
+          .multilineTextAlignment(.leading)
+          .frame(minWidth: 75)
+        Text(spot.frequency)
+          .multilineTextAlignment(.leading)
+        .frame(minWidth: 90)
+        Text(spot.spotter)
+          .multilineTextAlignment(.leading)
+        .frame(minWidth: 75)
+        Text(spot.dateTime)
+          .multilineTextAlignment(.leading)
+        .frame(minWidth: 50)
+        Text(spot.comment)
+          .multilineTextAlignment(.leading)
+        .frame(minWidth: 200)
+        Text(spot.grid)
+          .multilineTextAlignment(.leading)
+        .frame(minWidth: 50)
+        Spacer()
+      }
+      .frame(maxHeight: 15)
+      .padding(.leading, 5)
+      .border(Color.green)
+  }
+}
 
 // MARK: -  List of band buttons
 
@@ -155,7 +244,6 @@ struct ClusterView: View {
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
-    //ContentView(bands: bandData, clusters: clusterData)
     ContentView(controller: Controller())
   }
 }
