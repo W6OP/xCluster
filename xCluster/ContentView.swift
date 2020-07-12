@@ -61,48 +61,46 @@ struct ContentView: View {
       HStack{
         HStack{
           ScrollView {
-          VStack{
-            SpotHeader()
-            ForEach(controller.spots, id: \.self) { spot in
-            SpotRow(spot: spot)
-            }
-//            ForEach(controller.spots, id: \.self) { spot in
-//            HStack{
-//              Text("\(spot.dxStation) | \(spot.frequency) | \(spot.spotter) | \(spot.dateTime) | \(spot.comment) | \(spot.grid)")
-//              Spacer()
-//            }
-//            .frame(maxHeight: 15)
-//            .padding(.leading, 5)
-//            .border(Color.green)
-//          }
-        }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
-          //.border(Color.green)
+            VStack{
+              
+              SpotHeader()
+              Divider()
+                .frame(maxHeight: 1)
+                .padding(-5)
+               
+              ForEach(controller.spots, id: \.self) { spot in
+                SpotRow(spot: spot)
+              }
+            }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
           }
         }
-        .border(Color.green)
+        //.border(Color.green)
         HStack{
           ScrollView {
-          VStack{
-          ForEach(controller.statusMessage, id: \.self) { message in
-            HStack{
-              Text(message)
-              Spacer()
-            }
-            .frame(maxHeight: 15)
-            .lineLimit(nil)
-            .multilineTextAlignment(.leading)
+            VStack{
+              ForEach(controller.statusMessage, id: \.self) { message in
+                HStack{
+                  Text(message)
+                    .padding(.leading, 2)
+                  Spacer()
+                }
+                .frame(maxHeight: 15)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+              }
+            }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+              .border(Color.green)
           }
-        }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
-          .border(Color.green)
-          }
+          .background(Color.yellow)
+          .opacity(0.2)
         }
-        .border(Color.red)
+        .border(Color.black)
       }
       .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
       .padding(.vertical,0)
       
     } // end outer vstack
-      .frame(minWidth: 1024)
+      .frame(minWidth: 1300)
     
   }
 } // end ContentView
@@ -112,33 +110,25 @@ struct ContentView: View {
 struct SpotHeader: View {
    var body: some View {
     
-    HStack(){
+    HStack{
       Text("DX")
-        .lineLimit(nil)
-        .multilineTextAlignment(.leading)
-        .frame(minWidth: 50)
+        .frame(minWidth: 75)
       Text("Frequency")
-        .lineLimit(nil)
-        .multilineTextAlignment(.leading)
-      .frame(minWidth: 70)
+      .frame(minWidth: 90)
       Text("Spotter")
-      .frame(minWidth: 50)
-      .lineLimit(nil)
-      .multilineTextAlignment(.leading)
+      .frame(minWidth: 75)
       Text("Time")
-        .lineLimit(nil)
-        .multilineTextAlignment(.leading)
-      .frame(minWidth: 50)
+      .frame(minWidth: 60)
       Text("Comment")
-        .lineLimit(nil)
-        .multilineTextAlignment(.leading)
-      .frame(minWidth: 200)
+        .padding(.leading, 20)
+        .frame(minWidth: 250, alignment: .leading)
       Text("Grid")
-        .lineLimit(nil)
-        .multilineTextAlignment(.leading)
       .frame(minWidth: 50)
-      //Spacer()
+      Spacer()
     }
+    .foregroundColor(Color.red)
+    .font(.system(size: 14))
+   .padding(0)
   }
 }
 
@@ -148,30 +138,37 @@ struct SpotRow: View {
   var spot: ClusterSpot
   
    var body: some View {
+    VStack{
       HStack{
         Text(spot.dxStation)
-          .multilineTextAlignment(.leading)
-          .frame(minWidth: 75)
+          .frame(minWidth: 75,alignment: .leading)
+          .padding(.leading, 2)
         Text(spot.frequency)
-          .multilineTextAlignment(.leading)
-        .frame(minWidth: 90)
+        .frame(minWidth: 90,alignment: .leading)
         Text(spot.spotter)
-          .multilineTextAlignment(.leading)
-        .frame(minWidth: 75)
+        .frame(minWidth: 75,alignment: .leading)
         Text(spot.dateTime)
-          .multilineTextAlignment(.leading)
-        .frame(minWidth: 50)
+        .frame(minWidth: 60,alignment: .leading)
         Text(spot.comment)
-          .multilineTextAlignment(.leading)
-        .frame(minWidth: 200)
+        .frame(minWidth: 250,alignment: .leading)
+          .padding(.leading, 5)
+          .padding(.trailing, 5)
         Text(spot.grid)
-          .multilineTextAlignment(.leading)
-        .frame(minWidth: 50)
+        .frame(minWidth: 50,alignment: .leading)
         Spacer()
       }
-      .frame(maxHeight: 15)
+      .frame(maxWidth: .infinity, maxHeight: 15)
       .padding(.leading, 5)
-      .border(Color.green)
+      .padding(.top, -5)
+      .padding(.bottom, -5)
+      //.border(Color.green)
+      VStack{
+        Divider()
+        .frame(maxHeight: 1)
+        .padding(-5)
+      }
+      .frame(maxWidth: .infinity, maxHeight: 1)
+    }
   }
 }
 

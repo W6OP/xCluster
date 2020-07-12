@@ -53,6 +53,9 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
    */
   func  connect(clusterName: String) {
     
+    // clear the collection
+    //spots = [ClusterSpot]()
+    
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
     if !cluster!.address.isEmpty {
@@ -234,11 +237,11 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
         let spot = try self.spotProcessor.processRawSpot(rawSpot: message)
         self.spots.insert(spot, at: 0)
         
-//        if self.haveSessionKey {
-//            DispatchQueue.global(qos: .background).async { [weak self] in
-//                _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
-//            }
-//        }
+        if self.haveSessionKey {
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
+            }
+        }
       
       if spots.count > 100 {
         spots.remove(at: spots.count - 1)
