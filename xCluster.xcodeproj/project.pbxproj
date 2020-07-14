@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		992E089624B246610093DD80 /* Mapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992E089524B246610093DD80 /* Mapping.swift */; };
 		996588A624B0F3930007260B /* Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996588A524B0F3930007260B /* Bindings.swift */; };
 		996C151D24B613F600F58994 /* SpotProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C151C24B613F600F58994 /* SpotProcessor.swift */; };
 		996C151F24B6141200F58994 /* TelnetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996C151E24B6141200F58994 /* TelnetManager.swift */; };
@@ -39,7 +38,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		992E089524B246610093DD80 /* Mapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapping.swift; sourceTree = "<group>"; };
 		996588A524B0F3930007260B /* Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
 		996C151C24B613F600F58994 /* SpotProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotProcessor.swift; sourceTree = "<group>"; };
 		996C151E24B6141200F58994 /* TelnetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetManager.swift; sourceTree = "<group>"; };
@@ -75,7 +73,6 @@
 			children = (
 				996588A524B0F3930007260B /* Bindings.swift */,
 				99D1EA4324B3B33E00ACC78B /* Controller.swift */,
-				992E089524B246610093DD80 /* Mapping.swift */,
 			);
 			path = "Display Components";
 			sourceTree = "<group>";
@@ -216,7 +213,6 @@
 				99D1EA4424B3B33E00ACC78B /* Controller.swift in Sources */,
 				996C151D24B613F600F58994 /* SpotProcessor.swift in Sources */,
 				996C151F24B6141200F58994 /* TelnetManager.swift in Sources */,
-				992E089624B246610093DD80 /* Mapping.swift in Sources */,
 				996C152324B6143A00F58994 /* QRZManager.swift in Sources */,
 				996C152524B631B800F58994 /* PreferencesView.swift in Sources */,
 				996C152124B6142900F58994 /* Utility.swift in Sources */,

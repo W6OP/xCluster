@@ -7,8 +7,10 @@
 //
 
 // shim between UI and Network Controllers
-
+import Cocoa
 import Foundation
+import SwiftUI
+import MapKit
 import Combine
 
 // MARK: - ClusterSpots
@@ -23,7 +25,7 @@ struct ClusterSpot: Identifiable, Hashable {
   var grid: String
 }
 
-public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDelegate {
+public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZManagerDelegate {
   
   private let concurrentSpotProcessorQueue =
     DispatchQueue(
@@ -37,6 +39,7 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
+  var clustermapView: MKMapView! = MKMapView()
   
   let callsign = UserDefaults.standard.string(forKey: "callsign") ?? ""
   let fullname = UserDefaults.standard.string(forKey: "fullname") ?? ""
@@ -45,6 +48,46 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
   let qrzUsername = UserDefaults.standard.string(forKey: "username") ?? ""
   let qrzPassword = UserDefaults.standard.string(forKey: "password") ?? ""
   
+  // mapping
+  let MAX_SPOTS = 1000
+  let MAX_MAP_LINES = 50
+  let REGION_RADIUS: CLLocationDistance = 10000000
+  let CENTER_LATITUDE = 28.282778
+  let CENTER_LONGITUDE = -40.829444
+  let KEEP_ALIVE = 200
+  
+  let STANDARD_STROKE_COLOR = NSColor.blue
+  let FT8_STROKE_COLOR = NSColor.red
+  let LINE_WIDTH: Float = 5.0 //1.0
+  
+  weak var keepAliveTimer: Timer!
+  var overlays = [MKPolyline]()
+  var bandFilters = [Int:Int]()
+  
+  // MARK: - Initialization
+  
+  override init () {
+    
+    super.init()
+    
+    //clustermapView = MKMapView()
+    bandFilters[0] = 0
+    
+    telnetManager.telnetManagerDelegate = self
+    qrzManager.qrzManagerDelegate = self
+    
+    //clustermapView.delegate = self
+    
+    /*
+     let initialLocation = CLLocation(latitude: CENTER_LATITUDE, longitude: CENTER_LONGITUDE)
+     centerMapOnLocation(location: initialLocation)
+     
+     keepAliveTimer = Timer.scheduledTimer(timeInterval: TimeInterval(KEEP_ALIVE), target: self, selector: #selector(tickleServer), userInfo: nil, repeats: true)
+     */
+    
+    getQRZSessionKey()
+    
+  }
   
   // MARK: - Protocol Delegate Implementation
   
@@ -62,8 +105,6 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
       self.statusMessage = [String]()
       telnetManager.connect(host: cluster!.address, port: cluster!.port)
     }
-    //          // show an entry in the tableview
-    //          clusterSpotArray.insert(ClusterSpots(dx: "----------", frequency: "----------", spotter: "----------", comment: comment, datetime: "----",grid: "----"), at: 0)
   }
   
   /**
@@ -79,14 +120,11 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
         self.sendLogin()
       case .WAITING:
         UI {
-          //self.statusMessage.append(message.appendingFormat("\n"))
           self.statusMessage.append(message.appendingFormat(message))
         }
-        // self.statusMessages.string = self.statusMessages.string.appendingFormat("\n")
-      // self.statusMessages.string = self.statusMessages.string.appendingFormat(message)
+
       case .ERROR:
         UI {
-          //self.statusMessage.append(message.appendingFormat("\n"))
           self.statusMessage.append(message.appendingFormat(message))
         }
       case .CALL:
@@ -99,14 +137,11 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
         self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
       case .INFO:
         UI {
-          //self.statusMessage.append(message.appendingFormat("\n"))
           self.statusMessage.append(message.appendingFormat(message))
         }
       default:
         UI {
-          //self.statusMessage.append(message.appendingFormat("\n"))
           self.statusMessage.append(message.appendingFormat(message))
-          //print(self.statusMessage)
         }
       }
   }
@@ -123,23 +158,19 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
     case .CLUSTERTYPE:
       UI {
         self.statusMessage.append(message.condenseWhitespace())
-        //self.clusterTypeLabel.stringValue = message.condenseWhitespace()
       }
       break
     case .ANNOUNCEMENT:
       UI {
         self.statusMessage.append(message.condenseWhitespace())
-        //self.annoucementsLabel.stringValue = message.condenseWhitespace()
       }
       break
     case .INFO:
       UI {
-        //self.statusMessage.append(message.appendingFormat("\n"))
         self.statusMessage.append(message.appendingFormat(message))
       }
     case .ERROR:
       UI {
-        //self.statusMessage.append(message.appendingFormat("\n"))
         self.statusMessage.append(message.appendingFormat(message))
       }
     case .SPOTRECEIVED:
@@ -156,7 +187,7 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
   }
   
   /**
-   QRZ Manager protocol - Retieve the session key from QRZ.com.
+   QRZ Manager protocol - Retrieve the session key from QRZ.com.
    - parameters:
    - qrzManager: Reference to the class sending the message.
    - messageKey: Key associated with this message.
@@ -177,19 +208,9 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
    */
   func qrzManagerdidGetCallsignData(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, qrzInfoCombined: QRZInfoCombined) {
     
-    //      DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-    //          self!.buildMapLines(qrzInfoCombined: qrzInfoCombined)
-    //      }
-  }
-  
-  
-  
-  init () {
-    
-    telnetManager.telnetManagerDelegate = self
-    qrzManager.qrzManagerDelegate = self
-    
-    getQRZSessionKey()
+          DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+              self!.buildMapLines(qrzInfoCombined: qrzInfoCombined)
+          }
   }
   
   func getQRZSessionKey(){
@@ -252,10 +273,155 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
         return
     }
   }
-} // end class
+  
+  // MARK: - Button Action Implementation ----------------------------------------------------------------------------
+     
+     /**
+      Manage the band button state.
+      - parameters:
+      - buttonTag: the tag that identifies the button.
+      - state: the state of the button .on or .off.
+      */
+     func setBandButtons( buttonTag: Int, state: NSControl.StateValue) {
+         
+         // TODO: put clear button outside stackview
+         if buttonTag == 9999 {return}
+         
+         switch state {
+         case .on:
+             self.bandFilters[buttonTag] = buttonTag
+             if buttonTag == 0 {
+                 resetBandButtons()
+             } else {
+                 bandFilters.removeValue(forKey: 0)
+                 //allBandsButton.state = .off
+             }
+         case .off:
+             self.bandFilters.removeValue(forKey: buttonTag)
+             if self.bandFilters.count == 0 {
+                 //allBandsButton.state = .on
+                 self.bandFilters[0] = 0
+             }
+         default:
+             break
+         }
+         
+         filterMapLines()
+     }
+     
+     /**
+      Turn off all the buttons if the ALL button is on.
+      - parameters:
+      */
+     func resetBandButtons()
+     {
+//         for case let button as NSButton in self.bandStackView.subviews {
+//             if button.tag != 0 && button.tag != 9999 {
+//                 button.state = .off
+//                 bandFilters.removeValue(forKey: button.tag)
+//             }
+//         }
+     }
+     
+     // MARK: - Implementation ----------------------------------------------------------------------------
+     
+     @objc func tickleServer() {
+         print("timer fired.")
+         let bs = String(UnicodeScalar(8)) //"BACKSPACE"
+         sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
+     }
+     // MARK: - Map Implementation ----------------------------------------------------------------------------
+      
+      func centerMapOnLocation(location: CLLocation) {
+          let coordinateRegion = MKCoordinateRegion(center: location.coordinate,
+                                                    latitudinalMeters: REGION_RADIUS, longitudinalMeters: REGION_RADIUS)
+          clustermapView.setRegion(coordinateRegion, animated: true)
+      }
+      
+      /*
+       Build the line (overlay) to display on the map.
+       - parameters:
+       - qrzInfoCombined: combined data of a pair of call signs QRZ information.
+       */
+      func buildMapLines(qrzInfoCombined: QRZInfoCombined) {
+          
+          if qrzInfoCombined.error {return}
+          
+          // now have an array of arrays - need to flatten array
+          
+          let locations = [
+              CLLocationCoordinate2D(latitude: qrzInfoCombined.spotterLatitude, longitude: qrzInfoCombined.spotterLongitude),
+              CLLocationCoordinate2D(latitude: qrzInfoCombined.dxLatitude, longitude: qrzInfoCombined.dxLongitude)]
+        
+          
+          let polyline = MKPolyline(coordinates: locations, count: locations.count)
+          polyline.title = String(qrzInfoCombined.band)
+          self.overlays.append(polyline)
+          
+          if overlays.count > 50 {
+              let deletedPolyline = overlays.remove(at: overlays.count - 1)
+              self.clustermapView.removeOverlay(deletedPolyline)
+          }
+          
+          //print("\(qrzInfoCombined.spotterCall) : \(qrzInfoCombined.dxCall) : \(qrzInfoCombined.band)")
+          
+        UI {
+          self.clustermapView.addOverlay(polyline)
+          //self.filterMapLines()
+        }
+      }
+      
+      /*
+       Delete any map lines that don't meet the filter criteria.
+       If the filter is "All" put all the map lines back
+       */
+      func filterMapLines() {
+          // remove map overlays that don't match that band(s)
+          // TODO: add back lines when a filter button turns off
+        UI {
+          self.clustermapView.removeOverlays(self.clustermapView.overlays)
+        }
+          
+          if bandFilters[0] == nil {
+              var polylines = [[MKPolyline]]()
+              for band in bandFilters.values {
+                  // array of lines for a specific band
+                  polylines.append(self.overlays.filter { $0.title == String(band) })
+                  print("band filter: \(band)")
+              }
+              
+              // array of all filters lines
+              let flattened = polylines.flatMap { $0 }
+            UI {
+              self.clustermapView.addOverlays(flattened)
+            }
+          } else {
+              // show all lines
+            UI {
+              self.clustermapView.removeOverlays(self.clustermapView.overlays)
+              self.clustermapView.addOverlays(self.overlays)
+            }
+          }
+      }
+      
+      /*
+       Required function to render a polyline.
+       - parameters:
+       */
+//  public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+//    var polylineView: MKPolylineRenderer? = nil
+//   
+//    if let overlay = overlay as? MKPolyline {
+//      polylineView = MKPolylineRenderer(polyline: overlay)
+//      polylineView?.strokeColor = self.STANDARD_STROKE_COLOR
+//      polylineView?.lineWidth = CGFloat(self.LINE_WIDTH)
+//      print ("returning overlay")
+//    }
+//    
+//    return polylineView!
+//  }
 
-// MARK: - Get the QRZ Session Key
-//UserDefaults.standard.object(forKey: "username")
+} // end class
 
 
 // MARK: - User Defaults

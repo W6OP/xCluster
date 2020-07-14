@@ -30,7 +30,11 @@ class SpotProcessor {
         }
        
         let spotter = rawSpot.components(separatedBy: ":")
-        spot.spotter =  convertStringSliceToString(spotter[0].components(separatedBy: " ")[2])
+        // replacing -# for AE5E - don't know why he does that "W6OP-#" and "W6OP-2"
+        spot.spotter =  convertStringSliceToString(spotter[0].components(separatedBy: " ")[2])   //.replacingOccurrences(of: "-#", with: "")
+        if spot.spotter.contains("-") {
+          spot.spotter = String(spot.spotter.prefix(spot.spotter.count - 2))
+        }
         
         var startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 16)
         var endIndex = rawSpot.index(startIndex, offsetBy: 9)

@@ -8,6 +8,55 @@
 
 import SwiftUI
 import CallParser
+import MapKit
+
+// MARK: - Map View
+struct MapView: NSViewRepresentable {
+    typealias MapViewType = NSViewType
+  
+    //@Binding var overlays: [MKPolyline]
+    
+    func makeNSView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+      
+      //----------------------------------------------
+      let annotation = MKPointAnnotation()
+      annotation.title = "London"
+      annotation.subtitle = "Capital of England"
+      annotation.coordinate = CLLocationCoordinate2D(latitude: 51.5, longitude: 0.13)
+      mapView.addAnnotation(annotation)
+      
+      
+      
+      
+      //----------------------------------------------
+        return mapView
+    }
+
+    func updateNSView(_ uiView: MKMapView, context: Context) {
+      
+      print("Map updated")
+
+    }
+  
+  func makeCoordinator() -> Coordinator {
+      Coordinator(self)
+  }
+  
+  // https://www.hackingwithswift.com/books/ios-swiftui/communicating-with-a-mapkit-coordinator
+  class Coordinator: NSObject, MKMapViewDelegate {
+      var parent: MapView
+
+      init(_ parent: MapView) {
+          self.parent = parent
+      }
+    
+    func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+        //print(mapView.centerCoordinate)
+    }
+  } // end class
+} // end struct
 
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
@@ -44,7 +93,8 @@ struct ContentView: View {
       // MARK: - mapping container.
       
       HStack{
-        MapView().edgesIgnoringSafeArea(.vertical)
+        MapView()
+        .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       }
       .border(Color.black)
@@ -56,25 +106,26 @@ struct ContentView: View {
       ClusterView(controller: controller, clusters: clusters)
         .environmentObject(controller)
       
-      // MARK: - cluster display.
+      // MARK: - cluster list display.
       
       HStack{
         HStack{
           ScrollView {
             VStack{
-              
               SpotHeader()
               Divider()
                 .frame(maxHeight: 1)
                 .padding(-5)
-               
               ForEach(controller.spots, id: \.self) { spot in
                 SpotRow(spot: spot)
               }
-            }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+            }
+            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+            .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
         }
-        //.border(Color.green)
+        .border(Color.gray)
+        
         HStack{
           ScrollView {
             VStack{
@@ -82,19 +133,18 @@ struct ContentView: View {
                 HStack{
                   Text(message)
                     .padding(.leading, 2)
+                    .foregroundColor(Color.black)
                   Spacer()
                 }
                 .frame(maxHeight: 15)
-                .lineLimit(nil)
                 .multilineTextAlignment(.leading)
               }
-            }.frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
-              .border(Color.green)
+            }
+            .frame(minWidth: 300, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+            .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
-          .background(Color.yellow)
-          .opacity(0.2)
         }
-        .border(Color.black)
+        .border(Color.gray)
       }
       .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
       .padding(.vertical,0)
@@ -142,7 +192,7 @@ struct SpotRow: View {
       HStack{
         Text(spot.dxStation)
           .frame(minWidth: 75,alignment: .leading)
-          .padding(.leading, 2)
+          .padding(.leading, 5)
         Text(spot.frequency)
         .frame(minWidth: 90,alignment: .leading)
         Text(spot.spotter)
