@@ -14,49 +14,65 @@ import MapKit
 struct MapView: NSViewRepresentable {
     typealias MapViewType = NSViewType
   
-    //@Binding var overlays: [MKPolyline]
+    var controller: Controller
     
     func makeNSView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
-      
-      //----------------------------------------------
-      let annotation = MKPointAnnotation()
-      annotation.title = "London"
-      annotation.subtitle = "Capital of England"
-      annotation.coordinate = CLLocationCoordinate2D(latitude: 51.5, longitude: 0.13)
-      mapView.addAnnotation(annotation)
-      
-      
-      
-      
-      //----------------------------------------------
+ 
         return mapView
     }
+  
+  func update(){
+    
+  }
 
     func updateNSView(_ uiView: MKMapView, context: Context) {
-      
+      updateOverlays(from: uiView)
       print("Map updated")
 
     }
   
+  // https://medium.com/@mauvazquez/decoding-a-polyline-and-drawing-it-with-swiftui-mapkit-611952bd0ecb
+  public func updateOverlays(from mapView: MKMapView) {
+    mapView.removeOverlays(mapView.overlays)
+   
+    for poly in controller.overlays {
+      mapView.addOverlay(poly)
+      print("polyline added")
+    }
+    
+    //mapView.addOverlay(controller.latestPolyLine)
+    //print("polyline added")
+//    setMapZoomArea(map: mapView, polyline: polyline, edgeInsets: mapZoomEdgeInsets, animated: true)
+  }
+  
   func makeCoordinator() -> Coordinator {
       Coordinator(self)
   }
-  
-  // https://www.hackingwithswift.com/books/ios-swiftui/communicating-with-a-mapkit-coordinator
-  class Coordinator: NSObject, MKMapViewDelegate {
-      var parent: MapView
-
-      init(_ parent: MapView) {
-          self.parent = parent
-      }
-    
-    func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
-        //print(mapView.centerCoordinate)
-    }
-  } // end class
 } // end struct
+
+// https://www.hackingwithswift.com/books/ios-swiftui/communicating-with-a-mapkit-coordinator
+class Coordinator: NSObject, MKMapViewDelegate {
+    var parent: MapView
+
+    init(_ parent: MapView) {
+        self.parent = parent
+    }
+  
+  func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+      //print(mapView.centerCoordinate)
+    
+  }
+  
+  func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+    let renderer = MKPolylineRenderer(overlay: overlay)
+    renderer.strokeColor = .blue
+    renderer.lineWidth = 1.0
+    return renderer
+  }
+  
+} // end class
 
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
@@ -93,7 +109,7 @@ struct ContentView: View {
       // MARK: - mapping container.
       
       HStack{
-        MapView()
+        MapView(controller: controller)
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       }

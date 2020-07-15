@@ -39,7 +39,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
-  var clustermapView: MKMapView! = MKMapView()
+  //var clustermapView: MKMapView! = MKMapView()
   
   let callsign = UserDefaults.standard.string(forKey: "callsign") ?? ""
   let fullname = UserDefaults.standard.string(forKey: "fullname") ?? ""
@@ -61,7 +61,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   let LINE_WIDTH: Float = 5.0 //1.0
   
   weak var keepAliveTimer: Timer!
-  var overlays = [MKPolyline]()
+  
+  @Published var overlays = [MKPolyline]()
+  var latestPolyLine: MKPolyline!
   var bandFilters = [Int:Int]()
   
   // MARK: - Initialization
@@ -333,9 +335,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
      // MARK: - Map Implementation ----------------------------------------------------------------------------
       
       func centerMapOnLocation(location: CLLocation) {
-          let coordinateRegion = MKCoordinateRegion(center: location.coordinate,
-                                                    latitudinalMeters: REGION_RADIUS, longitudinalMeters: REGION_RADIUS)
-          clustermapView.setRegion(coordinateRegion, animated: true)
+//          let coordinateRegion = MKCoordinateRegion(center: location.coordinate,
+//                                                    latitudinalMeters: REGION_RADIUS, longitudinalMeters: REGION_RADIUS)
+          //clustermapView.setRegion(coordinateRegion, animated: true)
       }
       
       /*
@@ -356,17 +358,26 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
           
           let polyline = MKPolyline(coordinates: locations, count: locations.count)
           polyline.title = String(qrzInfoCombined.band)
+        UI {
           self.overlays.append(polyline)
           
+        }
+           print("polyline added to controller")
+          //let mapView = MapView.self
+          //mapView.updateNSView(ContentView)
+          
+          
           if overlays.count > 50 {
-              let deletedPolyline = overlays.remove(at: overlays.count - 1)
-              self.clustermapView.removeOverlay(deletedPolyline)
+              //let deletedPolyline = overlays.remove(at: overlays.count - 1)
+              //self.clustermapView.removeOverlay(deletedPolyline)
           }
           
           //print("\(qrzInfoCombined.spotterCall) : \(qrzInfoCombined.dxCall) : \(qrzInfoCombined.band)")
           
         UI {
-          self.clustermapView.addOverlay(polyline)
+          //self.clustermapView.addOverlay(polyline)
+         
+          //self.latestPolyLine = polyline
           //self.filterMapLines()
         }
       }
@@ -379,27 +390,29 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
           // remove map overlays that don't match that band(s)
           // TODO: add back lines when a filter button turns off
         UI {
-          self.clustermapView.removeOverlays(self.clustermapView.overlays)
+          //self.clustermapView.removeOverlays(self.clustermapView.overlays)
         }
           
           if bandFilters[0] == nil {
               var polylines = [[MKPolyline]]()
               for band in bandFilters.values {
                   // array of lines for a specific band
+                UI{
                   polylines.append(self.overlays.filter { $0.title == String(band) })
+                }
                   print("band filter: \(band)")
               }
               
               // array of all filters lines
               let flattened = polylines.flatMap { $0 }
             UI {
-              self.clustermapView.addOverlays(flattened)
+              //self.clustermapView.addOverlays(flattened)
             }
           } else {
               // show all lines
             UI {
-              self.clustermapView.removeOverlays(self.clustermapView.overlays)
-              self.clustermapView.addOverlays(self.overlays)
+              //self.clustermapView.removeOverlays(self.clustermapView.overlays)
+              //self.clustermapView.addOverlays(self.overlays)
             }
           }
       }
