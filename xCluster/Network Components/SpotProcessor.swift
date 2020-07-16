@@ -78,10 +78,12 @@ class SpotProcessor {
      - rawSpot: the string received via telnet.
      - returns:
      */
-    func processRawShowDxSpot(rawSpot: String) throws ->  ClusterSpots {
+    func processRawShowDxSpot(rawSpot: String) throws ->  ClusterSpot {
         
-        let spot = ClusterSpots(dx: "", frequency: "", spotter: "", comment: "",datetime: "",grid: "")
+        var spot = ClusterSpot(id: 0, dxStation: "", frequency: "", spotter: "", dateTime: "", comment: "", grid: "")
 
+      print(rawSpot)
+      
         if rawSpot.count < 65 {
             print("\(rawSpot.count) -- \(rawSpot)")
             throw SpotError.spotError("processRawShowDxSpot: spot length too short")
@@ -104,22 +106,28 @@ class SpotProcessor {
 
         startIndex = balance.startIndex
         endIndex = balance.index(startIndex, offsetBy: 12)
-        spot.dx = convertStringSliceToString(String(balance[startIndex..<endIndex]))
+        spot.dxStation = convertStringSliceToString(String(balance[startIndex..<endIndex]))
        
         startIndex = balance.index(balance.startIndex, offsetBy: 13)
         endIndex = balance.index(startIndex, offsetBy: 17)
-        spot.datetime = String(balance[startIndex..<endIndex])
+        spot.dateTime = String(balance[startIndex..<endIndex])
         
         startIndex = balance.index(balance.startIndex, offsetBy: 30)
         endIndex = balance.index(startIndex, offsetBy: 30)
         spot.comment = convertStringSliceToString(String(balance[startIndex..<endIndex]))
+        spot.comment = spot.comment.replacingOccurrences(of: "<", with: "")
 
         // clean of junk on end so it displays correctly when no grid supplied
         startIndex = balance.index(rawSpot.startIndex, offsetBy: 60)
         endIndex = balance.endIndex
-        // clean of junk on end so it displays correctly when no grid supplied
         spot.spotter = convertStringSliceToString(String(balance[startIndex..<endIndex])).condenseWhitespace()
         spot.spotter = spot.spotter.replacingOccurrences(of: "<", with: "").replacingOccurrences(of: ">", with: "")
+        // replacing -# for AE5E - don't know why he does that "W6OP-#" and "W6OP-2-#"
+        if spot.spotter.contains("-") {
+          let index = spot.spotter.firstIndex(of: "-")
+          let startIndex = spot.spotter.startIndex
+          spot.spotter = convertStringSliceToString(String(spot.spotter[startIndex..<index!])).condenseWhitespace()
+        }
         
         return spot
     }

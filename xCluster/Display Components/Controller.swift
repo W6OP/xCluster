@@ -40,7 +40,6 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
-  //var clustermapView: MKMapView! = MKMapView()
   
   let callsign = UserDefaults.standard.string(forKey: "callsign") ?? ""
   let fullname = UserDefaults.standard.string(forKey: "fullname") ?? ""
@@ -62,7 +61,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   let LINE_WIDTH: Float = 5.0 //1.0
   
   weak var keepAliveTimer: Timer!
-
+  
   var bandFilters = [Int:Int]()
   
   // MARK: - Initialization
@@ -71,23 +70,17 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     
     super.init()
     
-    //clustermapView = MKMapView()
     bandFilters[0] = 0
     
     telnetManager.telnetManagerDelegate = self
     qrzManager.qrzManagerDelegate = self
     
-    //clustermapView.delegate = self
+    //let initialLocation = CLLocation(latitude: CENTER_LATITUDE, longitude: CENTER_LONGITUDE)
+    //centerMapOnLocation(location: initialLocation)
     
-    /*
-     let initialLocation = CLLocation(latitude: CENTER_LATITUDE, longitude: CENTER_LONGITUDE)
-     centerMapOnLocation(location: initialLocation)
-     
-     keepAliveTimer = Timer.scheduledTimer(timeInterval: TimeInterval(KEEP_ALIVE), target: self, selector: #selector(tickleServer), userInfo: nil, repeats: true)
-     */
+    keepAliveTimer = Timer.scheduledTimer(timeInterval: TimeInterval(KEEP_ALIVE), target: self, selector: #selector(tickleServer), userInfo: nil, repeats: true)
     
     getQRZSessionKey()
-    
   }
   
   // MARK: - Protocol Delegate Implementation
@@ -100,6 +93,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     // clear the collection
     //spots = [ClusterSpot]()
     
+    telnetManager.disconnect()
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
     if !cluster!.address.isEmpty {
@@ -116,35 +110,44 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    - message: message text.
    */
   func telnetManagerStatusMessageReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
+    
+    print((messageKey))
+    
     switch messageKey {
-      case .LOGON:
-        self.sendLogin()
-      case .WAITING:
-        UI {
-          self.statusMessage.append(message.appendingFormat(message))
-        }
-
-      case .ERROR:
-        UI {
-          self.statusMessage.append(message.appendingFormat(message))
-        }
-      case .CALL:
-        self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
-      case .NAME:
-        self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
-      case .QTH:
-        self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.QTH)
-      case .LOCATION:
-        self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
-      case .INFO:
-        UI {
-          self.statusMessage.append(message.appendingFormat(message))
-        }
-      default:
-        UI {
-          self.statusMessage.append(message.appendingFormat(message))
-        }
+    case .LOGON:
+      self.sendLogin()
+    case .WAITING:
+      UI {
+        self.statusMessage.append(message)
       }
+      
+    case .ERROR:
+      UI {
+        self.statusMessage.append(message)
+      }
+    case .CALL:
+      self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
+    case .NAME:
+      self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
+    case .QTH:
+      self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.QTH)
+    case .LOCATION:
+      self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
+    case .INFO:
+      UI {
+        self.statusMessage.append(message)
+        print(self.statusMessage)
+      }
+    default:
+      UI {
+        self.statusMessage.append(message)
+        print(self.statusMessage )
+      }
+    }
+    
+    if self.statusMessage.count > 20 {
+      self.statusMessage.removeLast()
+    }
   }
   
   /**
@@ -155,6 +158,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    - message: message text.
    */
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
+   
+    print((messageKey))
+    
     switch messageKey {
     case .CLUSTERTYPE:
       UI {
@@ -163,27 +169,33 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       break
     case .ANNOUNCEMENT:
       UI {
-        self.statusMessage.append(message.condenseWhitespace())
+        self.statusMessage.append(message.condenseWhitespace() )
       }
       break
     case .INFO:
       UI {
-        self.statusMessage.append(message.appendingFormat(message))
+        self.statusMessage.append(message)
       }
     case .ERROR:
       UI {
-        self.statusMessage.append(message.appendingFormat(message))
+        self.statusMessage.append(message)
       }
     case .SPOTRECEIVED:
       UI {
         self.parseClusterSpot(message: message, messageType: messageKey)
+        // "DX de W3EX:      28075.6  N9AMI                                       1912Z FN20\a\a"
       }
     case .SHOWDXSPOTS:
       UI {
         self.parseClusterSpot(message: message, messageType: messageKey)
+        // "24915.0  PU0FDN      16-Jul-2020 1912Z  FM19TM<>HI36SD               <W6YTG>"
       }
     default:
       break
+    }
+    
+    if self.statusMessage.count > 20 {
+      self.statusMessage.removeLast()
     }
   }
   
@@ -209,9 +221,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    */
   func qrzManagerdidGetCallsignData(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, qrzInfoCombined: QRZInfoCombined) {
     
-          DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-              self!.buildMapLines(qrzInfoCombined: qrzInfoCombined)
-          }
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      self!.buildMapLines(qrzInfoCombined: qrzInfoCombined)
+    }
   }
   
   func getQRZSessionKey(){
@@ -219,6 +231,8 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     self.qrzManager.parseQRZSessionKeyRequest(name: self.qrzUsername, password: self.qrzPassword)
     //}
   }
+  
+  // MARK: - Cluster Login and Commands
   
   /**
    Send the operators call sign to the telnet server.
@@ -254,184 +268,214 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     }
   }
   
+  /**
+   "DX de W3EX:      28075.6  N9AMI                                       1912Z FN20\a\a"
+   */
   func parseClusterSpot(message: String, messageType: TelnetManagerMessage){
     do {
-        let spot = try self.spotProcessor.processRawSpot(rawSpot: message)
+      var spot = ClusterSpot(id: 0, dxStation: "", frequency: "", spotter: "", dateTime: "", comment: "", grid: "")
+      
+      switch messageType {
+      case .SHOWDXSPOTS:
+        spot = try self.spotProcessor.processRawShowDxSpot(rawSpot: message)
+        break
+      case .SPOTRECEIVED:
+        spot = try self.spotProcessor.processRawSpot(rawSpot: message)
+      default:
+        return
+      }
+      
+      UI {
         self.spots.insert(spot, at: 0)
-        
-        if self.haveSessionKey {
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
-            }
+      }
+      
+      if self.haveSessionKey {
+        DispatchQueue.global(qos: .background).async { [weak self] in
+          _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
         }
+      }
       
       if spots.count > 100 {
-        spots.remove(at: spots.count - 1)
+        UI {
+          self.spots.removeLast()
+        }
       }
     }
     catch {
-        print("Error: \(error)")
-        return
+      print("Error: \(error)")
+      return
     }
   }
   
+  /**
+   "24915.0  PU0FDN      16-Jul-2020 1912Z  FM19TM<>HI36SD               <W6YTG>"
+   */
+  func parseShowDXSpots(message: String) {
+    
+  }
+  
   // MARK: - Button Action Implementation ----------------------------------------------------------------------------
-     
-     /**
-      Manage the band button state.
-      - parameters:
-      - buttonTag: the tag that identifies the button.
-      - state: the state of the button .on or .off.
-      */
-     func setBandButtons( buttonTag: Int, state: NSControl.StateValue) {
-         
-         // TODO: put clear button outside stackview
-         if buttonTag == 9999 {return}
-         
-         switch state {
-         case .on:
-             self.bandFilters[buttonTag] = buttonTag
-             if buttonTag == 0 {
-                 resetBandButtons()
-             } else {
-                 bandFilters.removeValue(forKey: 0)
-                 //allBandsButton.state = .off
-             }
-         case .off:
-             self.bandFilters.removeValue(forKey: buttonTag)
-             if self.bandFilters.count == 0 {
-                 //allBandsButton.state = .on
-                 self.bandFilters[0] = 0
-             }
-         default:
-             break
-         }
-         
-         filterMapLines()
-     }
-     
-     /**
-      Turn off all the buttons if the ALL button is on.
-      - parameters:
-      */
-     func resetBandButtons()
-     {
-//         for case let button as NSButton in self.bandStackView.subviews {
-//             if button.tag != 0 && button.tag != 9999 {
-//                 button.state = .off
-//                 bandFilters.removeValue(forKey: button.tag)
-//             }
-//         }
-     }
-     
-     // MARK: - Implementation ----------------------------------------------------------------------------
-     
-     @objc func tickleServer() {
-         print("timer fired.")
-         let bs = String(UnicodeScalar(8)) //"BACKSPACE"
-         sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
-     }
-     // MARK: - Map Implementation ----------------------------------------------------------------------------
+  
+  /**
+   Manage the band button state.
+   - parameters:
+   - buttonTag: the tag that identifies the button.
+   - state: the state of the button .on or .off.
+   */
+  func setBandButtons( buttonTag: Int, state: NSControl.StateValue) {
+    
+    // TODO: put clear button outside stackview
+    if buttonTag == 9999 {return}
+    
+    switch state {
+    case .on:
+      self.bandFilters[buttonTag] = buttonTag
+      if buttonTag == 0 {
+        resetBandButtons()
+      } else {
+        bandFilters.removeValue(forKey: 0)
+        //allBandsButton.state = .off
+      }
+    case .off:
+      self.bandFilters.removeValue(forKey: buttonTag)
+      if self.bandFilters.count == 0 {
+        //allBandsButton.state = .on
+        self.bandFilters[0] = 0
+      }
+    default:
+      break
+    }
+    
+    filterMapLines()
+  }
+  
+  /**
+   Turn off all the buttons if the ALL button is on.
+   - parameters:
+   */
+  func resetBandButtons()
+  {
+    //         for case let button as NSButton in self.bandStackView.subviews {
+    //             if button.tag != 0 && button.tag != 9999 {
+    //                 button.state = .off
+    //                 bandFilters.removeValue(forKey: button.tag)
+    //             }
+    //         }
+  }
+  
+  // MARK: - Implementation ----------------------------------------------------------------------------
+  
+  @objc func tickleServer() {
+    print("timer fired.")
+    let bs = String(UnicodeScalar(8)) //"BACKSPACE"
+    sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
+  }
+  // MARK: - Map Implementation ----------------------------------------------------------------------------
+  
+  func centerMapOnLocation(location: CLLocation) {
+    //          let coordinateRegion = MKCoordinateRegion(center: location.coordinate,
+    //                                                    latitudinalMeters: REGION_RADIUS, longitudinalMeters: REGION_RADIUS)
+    //clustermapView.setRegion(coordinateRegion, animated: true)
+  }
+  
+  /*
+   Build the line (overlay) to display on the map.
+   - parameters:
+   - qrzInfoCombined: combined data of a pair of call signs QRZ information.
+   */
+  func buildMapLines(qrzInfoCombined: QRZInfoCombined) {
+    
+    if qrzInfoCombined.error {return}
+    
+    // now have an array of arrays - need to flatten array
+    
+    let locations = [
+      CLLocationCoordinate2D(latitude: qrzInfoCombined.spotterLatitude, longitude: qrzInfoCombined.spotterLongitude),
+      CLLocationCoordinate2D(latitude: qrzInfoCombined.dxLatitude, longitude: qrzInfoCombined.dxLongitude)]
+    
+    
+    //let polyline = MKPolyline(coordinates: locations, count: locations.count)
+    let polyline = MKGeodesicPolyline(coordinates: locations, count: locations.count)
+    polyline.title = String(qrzInfoCombined.band)
+    UI {
+      //if polyline.title == "6" {
+      self.overlays.append(polyline)
+      //self.filterMapLines()
+      //}
+    }
+    //print("polyline added to controller")
+    
+    if overlays.count > 50 {
+      //let deletedPolyline =
+      UI{
+        self.overlays.remove(at: self.overlays.count - 1)
+      }
+      //print("polyline deleted from controller")
+      //self.clustermapView.removeOverlay(deletedPolyline)
+    }
+    
+    //print("\(qrzInfoCombined.spotterCall) : \(qrzInfoCombined.dxCall) : \(qrzInfoCombined.band)")
+    
+    UI {
+      //self.clustermapView.addOverlay(polyline)
       
-      func centerMapOnLocation(location: CLLocation) {
-//          let coordinateRegion = MKCoordinateRegion(center: location.coordinate,
-//                                                    latitudinalMeters: REGION_RADIUS, longitudinalMeters: REGION_RADIUS)
-          //clustermapView.setRegion(coordinateRegion, animated: true)
+      //self.latestPolyLine = polyline
+      //self.filterMapLines()
+    }
+  }
+  
+  /*
+   Delete any map lines that don't meet the filter criteria.
+   If the filter is "All" put all the map lines back
+   */
+  func filterMapLines() {
+    // remove map overlays that don't match that band(s)
+    // TODO: add back lines when a filter button turns off
+    UI {
+      //self.clustermapView.removeOverlays(self.clustermapView.overlays)
+    }
+    
+    if bandFilters[0] == nil {
+      var polylines = [[MKPolyline]]()
+      for band in bandFilters.values {
+        // array of lines for a specific band
+        UI{
+          polylines.append(self.overlays.filter { $0.title == String(band) }) // band
+        }
+        print("band filter: \(band)")
       }
       
-      /*
-       Build the line (overlay) to display on the map.
-       - parameters:
-       - qrzInfoCombined: combined data of a pair of call signs QRZ information.
-       */
-      func buildMapLines(qrzInfoCombined: QRZInfoCombined) {
-          
-          if qrzInfoCombined.error {return}
-          
-          // now have an array of arrays - need to flatten array
-          
-          let locations = [
-              CLLocationCoordinate2D(latitude: qrzInfoCombined.spotterLatitude, longitude: qrzInfoCombined.spotterLongitude),
-              CLLocationCoordinate2D(latitude: qrzInfoCombined.dxLatitude, longitude: qrzInfoCombined.dxLongitude)]
-        
-          
-          let polyline = MKPolyline(coordinates: locations, count: locations.count)
-          polyline.title = String(qrzInfoCombined.band)
-        UI {
-          self.overlays.append(polyline)
-          self.filterMapLines()
-        }
-           print("polyline added to controller")
-          
-          if overlays.count > 50 {
-              //let deletedPolyline =
-            overlays.remove(at: overlays.count - 1)
-            print("polyline deleted from controller")
-              //self.clustermapView.removeOverlay(deletedPolyline)
-          }
- 
-          //print("\(qrzInfoCombined.spotterCall) : \(qrzInfoCombined.dxCall) : \(qrzInfoCombined.band)")
-          
-        UI {
-          //self.clustermapView.addOverlay(polyline)
-         
-          //self.latestPolyLine = polyline
-          //self.filterMapLines()
-        }
+      // array of all filters lines
+      let flattened = polylines.flatMap { $0 }
+      UI {
+        //self.clustermapView.addOverlays(flattened)
       }
-      
-      /*
-       Delete any map lines that don't meet the filter criteria.
-       If the filter is "All" put all the map lines back
-       */
-      func filterMapLines() {
-          // remove map overlays that don't match that band(s)
-          // TODO: add back lines when a filter button turns off
-        UI {
-          //self.clustermapView.removeOverlays(self.clustermapView.overlays)
-        }
-          
-          if bandFilters[0] == nil {
-              var polylines = [[MKPolyline]]()
-              for band in bandFilters.values {
-                  // array of lines for a specific band
-                UI{
-                  polylines.append(self.overlays.filter { $0.title == String(band) })
-                }
-                  print("band filter: \(band)")
-              }
-              
-              // array of all filters lines
-              let flattened = polylines.flatMap { $0 }
-            UI {
-              //self.clustermapView.addOverlays(flattened)
-            }
-          } else {
-              // show all lines
-            UI {
-              //self.clustermapView.removeOverlays(self.clustermapView.overlays)
-              //self.clustermapView.addOverlays(self.overlays)
-            }
-          }
+    } else {
+      // show all lines
+      UI {
+        //self.clustermapView.removeOverlays(self.clustermapView.overlays)
+        //self.clustermapView.addOverlays(self.overlays)
       }
-      
-      /*
-       Required function to render a polyline.
-       - parameters:
-       */
-//  public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-//    var polylineView: MKPolylineRenderer? = nil
-//   
-//    if let overlay = overlay as? MKPolyline {
-//      polylineView = MKPolylineRenderer(polyline: overlay)
-//      polylineView?.strokeColor = self.STANDARD_STROKE_COLOR
-//      polylineView?.lineWidth = CGFloat(self.LINE_WIDTH)
-//      print ("returning overlay")
-//    }
-//    
-//    return polylineView!
-//  }
-
+    }
+  }
+  
+  /*
+   Required function to render a polyline.
+   - parameters:
+   */
+  //  public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+  //    var polylineView: MKPolylineRenderer? = nil
+  //
+  //    if let overlay = overlay as? MKPolyline {
+  //      polylineView = MKPolylineRenderer(polyline: overlay)
+  //      polylineView?.strokeColor = self.STANDARD_STROKE_COLOR
+  //      polylineView?.lineWidth = CGFloat(self.LINE_WIDTH)
+  //      print ("returning overlay")
+  //    }
+  //
+  //    return polylineView!
+  //  }
+  
 } // end class
 
 

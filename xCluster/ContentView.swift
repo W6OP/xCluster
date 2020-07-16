@@ -30,7 +30,7 @@ struct MapView: NSViewRepresentable {
 
     func updateNSView(_ uiView: MKMapView, context: Context) {
       updateOverlays(from: uiView)
-      print("Map updated")
+      //print("Map updated")
 
     }
   
@@ -40,7 +40,7 @@ struct MapView: NSViewRepresentable {
    
     for polyline in overlays {
       mapView.addOverlay(polyline)
-      print("polyline added")
+      //print("polyline added: \(overlays.count)")
     }
     
     //mapView.addOverlay(controller.latestPolyLine)
@@ -83,10 +83,12 @@ struct ContentView: View {
   // var spots
   // var maplines
   @State private var showPreferences = false
+  @State var isSoundOn = true
   
   var body: some View {
     VStack{
-      
+      VSplitView() {
+      VStack{
       // MARK: - band buttons.
       
       HStack{
@@ -99,6 +101,10 @@ struct ContentView: View {
          
           return PreferencesView()
         }
+
+//        Toggle(isOn: $isSoundOn) {
+//            Text("Sound")
+//        }
         
         BandView(bands: bands)
       }
@@ -117,14 +123,15 @@ struct ContentView: View {
       .border(Color.black)
       .padding(.top, 0)
       .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
+      } // end inner vstack
       
-      // MARK: - cluster selection and filtering.
-      
+        
+        // MARK: - cluster selection and filtering.
+       VStack {
       ClusterView(controller: controller, clusters: clusters)
         .environmentObject(controller)
-      
-      // MARK: - cluster list display.
-      
+
+      // MARK: - Spot list display.
       HStack{
         HStack{
           ScrollView {
@@ -137,7 +144,7 @@ struct ContentView: View {
                 SpotRow(spot: spot)
               }
             }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+            .frame(minWidth: 0, maxWidth: .infinity,  alignment: .topLeading)
             .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
         }
@@ -157,15 +164,16 @@ struct ContentView: View {
                 .multilineTextAlignment(.leading)
               }
             }
-            .frame(minWidth: 300, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
+            .frame(minWidth: 300, maxWidth: .infinity,  alignment: .topLeading)
             .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
         }
         .border(Color.gray)
       }
-      .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
+      .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 300)
       .padding(.vertical,0)
-      
+      } // end inner vstack
+    }
     } // end outer vstack
       .frame(minWidth: 1300)
     
@@ -243,13 +251,20 @@ struct SpotRow: View {
 
 struct BandView: View {
   var bands: [BandIdentifier]
+  @State var isEnabled = true
   
   var body: some View {
+    //        Toggle(isOn: $isSoundOn) {
+    //            Text("Sound")
+    //        }
+
     
     ForEach(bands, id: \.self) { item in
       Button(action: {selectBand(bandId: item.id)}) {
         Text(item.band)
-      }.padding(.top, 5)
+      }
+      .padding(.top, 5)
+      //.toggleStyle()
     }
   }
 }
@@ -285,10 +300,10 @@ struct ClusterView: View {
         TextField("Call Filter", text: $callFilter)
           .textFieldStyle(RoundedBorderTextFieldStyle())
           .frame(maxWidth: 100)
-        Button(action: {showDX(count: 20)}) {
+        Button(action: {self.controller.sendClusterCommand(tag: 20, command: "")}) {
           Text("show dx/20")
         }
-        Button(action: {showDX(count: 50)}) {
+        Button(action: {self.controller.sendClusterCommand(tag: 50, command: "")}) {
             Text("show dx/50")
         }
       }
