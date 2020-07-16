@@ -14,7 +14,8 @@ import MapKit
 struct MapView: NSViewRepresentable {
     typealias MapViewType = NSViewType
   
-    var controller: Controller
+    //var controller: Controller
+    var overlays: [MKPolyline]
     
     func makeNSView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -37,8 +38,8 @@ struct MapView: NSViewRepresentable {
   public func updateOverlays(from mapView: MKMapView) {
     mapView.removeOverlays(mapView.overlays)
    
-    for poly in controller.overlays {
-      mapView.addOverlay(poly)
+    for polyline in overlays {
+      mapView.addOverlay(polyline)
       print("polyline added")
     }
     
@@ -109,7 +110,7 @@ struct ContentView: View {
       // MARK: - mapping container.
       
       HStack{
-        MapView(controller: controller)
+        MapView(overlays: controller.overlays)
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       }

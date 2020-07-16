@@ -35,6 +35,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   @Published var spots = [ClusterSpot]()
   @Published var statusMessage = [String]()
   @Published var haveSessionKey = false
+  @Published var overlays = [MKPolyline]()
   
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
@@ -61,9 +62,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   let LINE_WIDTH: Float = 5.0 //1.0
   
   weak var keepAliveTimer: Timer!
-  
-  @Published var overlays = [MKPolyline]()
-  var latestPolyLine: MKPolyline!
+
   var bandFilters = [Int:Int]()
   
   // MARK: - Initialization
@@ -360,18 +359,17 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
           polyline.title = String(qrzInfoCombined.band)
         UI {
           self.overlays.append(polyline)
-          
+          self.filterMapLines()
         }
            print("polyline added to controller")
-          //let mapView = MapView.self
-          //mapView.updateNSView(ContentView)
-          
           
           if overlays.count > 50 {
-              //let deletedPolyline = overlays.remove(at: overlays.count - 1)
+              //let deletedPolyline =
+            overlays.remove(at: overlays.count - 1)
+            print("polyline deleted from controller")
               //self.clustermapView.removeOverlay(deletedPolyline)
           }
-          
+ 
           //print("\(qrzInfoCombined.spotterCall) : \(qrzInfoCombined.dxCall) : \(qrzInfoCombined.band)")
           
         UI {

@@ -8,12 +8,11 @@
 
 // Take a raw spot and break it into its component parts
 
-import Cocoa
+import Foundation
 
 class SpotProcessor {
     
      init() {
-        //super.init()
         
     }
     
@@ -21,7 +20,6 @@ class SpotProcessor {
     // DX de LY3AB:     1887.0  LY2RJ        cq cq cq                       1743Z KO25
     func processRawSpot(rawSpot: String) throws -> ClusterSpot  {
         
-        //let clusterSpot = ClusterSpot()
       var spot = ClusterSpot(id: 0, dxStation: "", frequency: "", spotter: "", dateTime: "",comment: "",grid: "")
         
         if rawSpot.count < 75 {
@@ -30,17 +28,18 @@ class SpotProcessor {
         }
        
         let spotter = rawSpot.components(separatedBy: ":")
-        // replacing -# for AE5E - don't know why he does that "W6OP-#" and "W6OP-2"
-        spot.spotter =  convertStringSliceToString(spotter[0].components(separatedBy: " ")[2])   //.replacingOccurrences(of: "-#", with: "")
+        // replacing -# for AE5E - don't know why he does that "W6OP-#" and "W6OP-2-#"
+        spot.spotter =  convertStringSliceToString(spotter[0].components(separatedBy: " ")[2])
         if spot.spotter.contains("-") {
-          spot.spotter = String(spot.spotter.prefix(spot.spotter.count - 2))
+          let index = spot.spotter.firstIndex(of: "-")
+          let startIndex = spot.spotter.startIndex
+          spot.spotter = convertStringSliceToString(String(spot.spotter[startIndex..<index!])).condenseWhitespace()
         }
         
         var startIndex = rawSpot.index(rawSpot.startIndex, offsetBy: 16)
         var endIndex = rawSpot.index(startIndex, offsetBy: 9)
         let frequency = convertStringSliceToString(String(rawSpot[startIndex..<endIndex])).condenseWhitespace()
         guard Float(frequency) != nil else {
-            //print(frequency)
             throw SpotError.spotError("processRawSpot: unable to parse frequency")
         }
         spot.frequency = convertFrequencyToDecimalString(frequency:frequency)
