@@ -13,8 +13,6 @@ import MapKit
 // MARK: - Map View
 struct MapView: NSViewRepresentable {
     typealias MapViewType = NSViewType
-  
-    //var controller: Controller
     var overlays: [MKPolyline]
     
     func makeNSView(context: Context) -> MKMapView {
@@ -24,14 +22,8 @@ struct MapView: NSViewRepresentable {
         return mapView
     }
   
-  func update(){
-    
-  }
-
     func updateNSView(_ uiView: MKMapView, context: Context) {
       updateOverlays(from: uiView)
-      //print("Map updated")
-
     }
   
   // https://medium.com/@mauvazquez/decoding-a-polyline-and-drawing-it-with-swiftui-mapkit-611952bd0ecb
@@ -40,11 +32,8 @@ struct MapView: NSViewRepresentable {
    
     for polyline in overlays {
       mapView.addOverlay(polyline)
-      //print("polyline added: \(overlays.count)")
     }
-    
-    //mapView.addOverlay(controller.latestPolyLine)
-    //print("polyline added")
+   
 //    setMapZoomArea(map: mapView, polyline: polyline, edgeInsets: mapZoomEdgeInsets, animated: true)
   }
   
@@ -80,15 +69,11 @@ struct ContentView: View {
   @ObservedObject var controller: Controller
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
-  // var spots
-  // var maplines
   @State private var showPreferences = false
   @State var isSoundOn = true
   
   var body: some View {
     VStack{
-      VSplitView() {
-      VStack{
       // MARK: - band buttons.
       
       HStack{
@@ -123,11 +108,8 @@ struct ContentView: View {
       .border(Color.black)
       .padding(.top, 0)
       .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
-      } // end inner vstack
       
-        
         // MARK: - cluster selection and filtering.
-       VStack {
       ClusterView(controller: controller, clusters: clusters)
         .environmentObject(controller)
 
@@ -144,7 +126,7 @@ struct ContentView: View {
                 SpotRow(spot: spot)
               }
             }
-            .frame(minWidth: 0, maxWidth: .infinity,  alignment: .topLeading)
+            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
             .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
         }
@@ -164,16 +146,14 @@ struct ContentView: View {
                 .multilineTextAlignment(.leading)
               }
             }
-            .frame(minWidth: 300, maxWidth: .infinity,  alignment: .topLeading)
+            .frame(minWidth: 300, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
             .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
           }
         }
         .border(Color.gray)
       }
-      .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 300)
+      .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
       .padding(.vertical,0)
-      } // end inner vstack
-    }
     } // end outer vstack
       .frame(minWidth: 1300)
     
