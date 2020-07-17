@@ -86,12 +86,8 @@ struct ContentView: View {
          
           return PreferencesView()
         }
-
-//        Toggle(isOn: $isSoundOn) {
-//            Text("Sound")
-//        }
         
-        BandView(bands: bands)
+        BandViewToggle(bands: bands)
       }
       .padding(.top, -2).padding(.bottom, 2)
       .frame(maxWidth: .infinity)
@@ -229,22 +225,44 @@ struct SpotRow: View {
 
 // MARK: -  List of band buttons
 
-struct BandView: View {
-  var bands: [BandIdentifier]
-  @State var isEnabled = true
+// https://stackoverflow.com/questions/60994255/swiftui-get-toggle-state-from-items-inside-a-list
+struct BandViewToggle: View {
+  @State var bands: [BandIdentifier]
   
   var body: some View {
-    //        Toggle(isOn: $isSoundOn) {
-    //            Text("Sound")
-    //        }
+    HStack{
+      ForEach(bands.indices) { item in
+        Toggle(isOn: self.$bands[item].isSelected) {
+          Text(self.bands[item].band)
+        }
+        .tag(self.bands[item].id)
+        .padding(.top, 5)
+        .toggleStyle(SwitchToggleStyle())
+      }
+    }
+  }
+}
 
-    
+/**
+ //.background(self.isBandSelected ? Color.orange : Color.purple)
+ //      .onReceive([self.isBandSelected].publisher.first()) { (value) in
+ //           print("New value is: \(value)")
+ //      }
+ */
+
+struct BandView: View {
+  var bands: [BandIdentifier]
+  @State private var isBandSelected = false
+  
+  var body: some View {
+    HStack{
     ForEach(bands, id: \.self) { item in
+     
       Button(action: {selectBand(bandId: item.id)}) {
         Text(item.band)
       }
       .padding(.top, 5)
-      //.toggleStyle()
+      }
     }
   }
 }
@@ -271,6 +289,7 @@ struct ClusterView: View {
           Text("Connect")
         }
         .disabled(controller.haveSessionKey == false)
+        
       }
       .padding(.trailing)
       

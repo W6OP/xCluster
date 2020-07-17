@@ -13,23 +13,28 @@ import Foundation
 struct BandIdentifier : Identifiable, Hashable {
     var band: String
     var id: Int
+  var isSelected: Bool {
+      didSet {
+      // Here's where any code goes that needs to run when a switch is toggled
+      print("\(band) is \(isSelected ? "enabled" : "disabled")")
+    }
+  }
 }
 
 let bandData = [
-    BandIdentifier(band: "Clear",id: 0),
-    BandIdentifier(band: "All",id: 1),
-    BandIdentifier(band: "VHF",id: 99),
-    BandIdentifier(band: "160m",id: 2),
-    BandIdentifier(band: "80m",id: 3),
-    BandIdentifier(band: "60m",id: 4),
-    BandIdentifier(band: "40m",id: 5),
-    BandIdentifier(band: "30m",id: 6),
-    BandIdentifier(band: "20m",id: 7),
-    BandIdentifier(band: "18m",id: 8),
-    BandIdentifier(band: "15m",id: 9),
-    BandIdentifier(band: "12m",id: 10),
-    BandIdentifier(band: "10m",id: 11),
-    BandIdentifier(band: "6m",id: 12),
+    BandIdentifier(band: "All",id: 0, isSelected: false),
+    BandIdentifier(band: "VHF",id: 99, isSelected: false),
+    BandIdentifier(band: "160m",id: 160, isSelected: false),
+    BandIdentifier(band: "80m",id: 80, isSelected: false),
+    BandIdentifier(band: "60m",id: 60, isSelected: false),
+    BandIdentifier(band: "40m",id: 40, isSelected: false),
+    BandIdentifier(band: "30m",id: 30, isSelected: false),
+    BandIdentifier(band: "20m",id: 20, isSelected: false),
+    BandIdentifier(band: "18m",id: 18, isSelected: false),
+    BandIdentifier(band: "15m",id: 15, isSelected: false),
+    BandIdentifier(band: "12m",id: 12, isSelected: false),
+    BandIdentifier(band: "10m",id: 10, isSelected: false),
+    BandIdentifier(band: "6m",id: 6, isSelected: false)
 ]
 
 // MARK: - Cluster Definition
