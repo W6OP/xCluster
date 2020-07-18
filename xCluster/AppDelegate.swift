@@ -20,8 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     let controller = Controller()
     // Create the SwiftUI view that provides the window contents.
-    let contentView = ContentView(controller: controller)
-      //.environmentObject(controller)
+    let contentView = ContentView().environmentObject(controller)
 
     // Create the window and set the content view. 
     window = NSWindow(

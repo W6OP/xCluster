@@ -66,7 +66,7 @@ class Coordinator: NSObject, MKMapViewDelegate {
 
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
-  @ObservedObject var controller: Controller
+  @EnvironmentObject var controller: Controller
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   @State private var showPreferences = false
@@ -87,7 +87,7 @@ struct ContentView: View {
           return PreferencesView()
         }
         
-        BandViewToggle(bands: bands)
+        BandViewToggle(bands: bands, controller: controller)
       }
       .padding(.top, -2).padding(.bottom, 2)
       .frame(maxWidth: .infinity)
@@ -228,23 +228,32 @@ struct SpotRow: View {
 // https://stackoverflow.com/questions/60994255/swiftui-get-toggle-state-from-items-inside-a-list
 struct BandViewToggle: View {
   @State var bands: [BandIdentifier]
-  //var controller: Controller
-  
+  var controller: Controller
+
   var body: some View {
     HStack{
       ForEach(bands.indices) { item in
-        Toggle(isOn: self.$bands[item].isSelected) {
-          Text(self.bands[item].band)
-        }
+//        Toggle(isOn: self.$bands[item].isSelected) {
+//          Text(self.bands[item].band)
+//        }
+        Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
+           print(self.bands[item].band)
+          self.controller.setBandButtons(buttonTag: self.bands[item].id, state: state)
+        })
         .tag(self.bands[item].id)
         .padding(.top, 5)
         .toggleStyle(SwitchToggleStyle())
+        
       }
     }
   }
 }
 
 /**
+ Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
+    print(state)
+ })
+ 
  //.background(self.isBandSelected ? Color.orange : Color.purple)
  //      .onReceive([self.isBandSelected].publisher.first()) { (value) in
  //           print("New value is: \(value)")
@@ -323,7 +332,7 @@ struct ClusterView: View {
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
-    ContentView(controller: Controller())
+    ContentView().environmentObject(Controller())
   }
 }
 

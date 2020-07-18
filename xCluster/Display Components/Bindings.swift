@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import SwiftUI
+import Combine
 
 // MARK: - Band Definition
 
@@ -14,18 +16,19 @@ struct BandIdentifier : Identifiable, Hashable {
     var band: String
     var id: Int
     var isSelected: Bool
-    {
-      willSet {
-      // Here's where any code goes that needs to run when a switch is toggled
-      print("\(band) is \(isSelected ? "enabled" : "disabled")")
-        //setBandButtons(id, isSelected)
-    }
-  }
+//    {
+//      willSet {
+//      // Here's where any code goes that needs to run when a switch is toggled
+//      print("\(band) is \(isSelected ? "enabled" : "disabled")")
+//        //setBandButtons(id, isSelected)
+//
+//    }
+//  }
 }
 
 let bandData = [
-    BandIdentifier(band: "All",id: 0, isSelected: false),
-    BandIdentifier(band: "VHF",id: 99, isSelected: false),
+  BandIdentifier(band: "All",id: 0, isSelected: false),
+  BandIdentifier(band: "VHF",id: 99, isSelected: false),
     BandIdentifier(band: "160m",id: 160, isSelected: false),
     BandIdentifier(band: "80m",id: 80, isSelected: false),
     BandIdentifier(band: "60m",id: 60, isSelected: false),
@@ -36,7 +39,7 @@ let bandData = [
     BandIdentifier(band: "15m",id: 15, isSelected: false),
     BandIdentifier(band: "12m",id: 12, isSelected: false),
     BandIdentifier(band: "10m",id: 10, isSelected: false),
-    BandIdentifier(band: "6m",id: 6, isSelected: false)
+    BandIdentifier(band: "6m",id: 6, isSelected: false),
 ]
 
 // MARK: - Cluster Definition
@@ -67,6 +70,22 @@ let clusterData = [
     // telnet.reversebeacon.net port 7000, for CW and RTTY spots
     ClusterIdentifier(name: "All RBN", address: "telnet.reversebeacon.net", port: "7000", id: 10),
 ]
+
+//https://stackoverflow.com/questions/56996272/how-can-i-trigger-an-action-when-a-swiftui-toggle-is-toggled
+// allows an action to be attached to a Toggle
+extension Binding {
+    func didSet(execute: @escaping (Value) -> Void) -> Binding {
+        return Binding(
+            get: {
+                return self.wrappedValue
+            },
+            set: {
+                self.wrappedValue = $0
+                execute($0)
+            }
+        )
+    }
+}
 
 //struct ClusterSpot: Identifiable, Hashable {
 //  var dx: String
