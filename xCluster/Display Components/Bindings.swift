@@ -13,10 +13,12 @@ import Foundation
 struct BandIdentifier : Identifiable, Hashable {
     var band: String
     var id: Int
-  var isSelected: Bool {
-      didSet {
+    var isSelected: Bool
+    {
+      willSet {
       // Here's where any code goes that needs to run when a switch is toggled
       print("\(band) is \(isSelected ? "enabled" : "disabled")")
+        //setBandButtons(id, isSelected)
     }
   }
 }

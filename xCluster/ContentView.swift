@@ -228,6 +228,7 @@ struct SpotRow: View {
 // https://stackoverflow.com/questions/60994255/swiftui-get-toggle-state-from-items-inside-a-list
 struct BandViewToggle: View {
   @State var bands: [BandIdentifier]
+  //var controller: Controller
   
   var body: some View {
     HStack{

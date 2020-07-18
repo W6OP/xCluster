@@ -322,13 +322,13 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    - buttonTag: the tag that identifies the button.
    - state: the state of the button .on or .off.
    */
-  func setBandButtons( buttonTag: Int, state: NSControl.StateValue) {
+  func setBandButtons( buttonTag: Int, state: Bool) {
     
     // TODO: put clear button outside stackview
     if buttonTag == 9999 {return}
     
     switch state {
-    case .on:
+    case true:
       self.bandFilters[buttonTag] = buttonTag
       if buttonTag == 0 {
         resetBandButtons()
@@ -336,14 +336,12 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
         bandFilters.removeValue(forKey: 0)
         //allBandsButton.state = .off
       }
-    case .off:
+    case false:
       self.bandFilters.removeValue(forKey: buttonTag)
       if self.bandFilters.count == 0 {
         //allBandsButton.state = .on
         self.bandFilters[0] = 0
       }
-    default:
-      break
     }
     
     filterMapLines()
