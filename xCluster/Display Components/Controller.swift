@@ -36,7 +36,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   @Published var statusMessage = [String]()
   @Published var haveSessionKey = false
   @Published var overlays = [MKPolyline]()
-  
+ 
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
@@ -62,7 +62,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   weak var keepAliveTimer: Timer!
   
-  var bandFilters = [Int:Int]()
+  var bandFilters = [Int: Int]()
   
   // MARK: - Initialization
   
@@ -70,8 +70,8 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     
     super.init()
     
-    bandFilters[0] = 0
-    
+    bandFilters = [99:99,160:160,80:80,60:60,40:40,30:30,20:20,18:18,15:15,12:12,10:10,6:6]
+
     telnetManager.telnetManagerDelegate = self
     qrzManager.qrzManagerDelegate = self
     
@@ -111,7 +111,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    */
   func telnetManagerStatusMessageReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
     
-    print((messageKey))
+    //print((messageKey))
     
     switch messageKey {
     case .LOGON:
@@ -136,17 +136,19 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     case .INFO:
       UI {
         self.statusMessage.append(message)
-        print(self.statusMessage)
+        //print(self.statusMessage)
       }
     default:
       UI {
         self.statusMessage.append(message)
-        print(self.statusMessage )
+//        print(self.statusMessage )
       }
     }
     
     if self.statusMessage.count > 20 {
-      self.statusMessage.removeLast()
+      UI {
+        self.statusMessage.removeLast()
+      }
     }
   }
   
@@ -159,7 +161,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    */
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
    
-    print((messageKey))
+    //print((messageKey))
     
     switch messageKey {
     case .CLUSTERTYPE:
@@ -285,6 +287,10 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
         return
       }
       
+      if (bandFilters[convertFrequencyToBand(frequency: spot.frequency)] == nil) {
+        return
+      }
+      
       UI {
         self.spots.insert(spot, at: 0)
       }
@@ -307,12 +313,47 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     }
   }
   
+  func convertFrequencyToBand(frequency: String) -> Int {
+    var band: Int
+    let frequencyMajor = frequency.prefix(while: {$0 != "."})
+    
+    switch frequencyMajor {
+    
+    case "1":
+      band = 160
+    case "3", "4":
+      band = 80
+    case "5":
+      band = 60
+      case "7":
+      band = 40
+      case "10":
+      band = 30
+      case "14":
+      band = 20
+      case "18":
+      band = 17
+      case "21":
+      band = 15
+      case "24":
+      band = 12
+      case "28":
+      band = 10
+      case "50","51","52","53","54":
+      band = 6
+    default:
+      band = 99
+    }
+
+    return band
+  }
+  
   /**
    "24915.0  PU0FDN      16-Jul-2020 1912Z  FM19TM<>HI36SD               <W6YTG>"
    */
-  func parseShowDXSpots(message: String) {
-    
-  }
+//  func parseShowDXSpots(message: String) {
+//
+//  }
   
   // MARK: - Button Action Implementation ----------------------------------------------------------------------------
   
@@ -333,15 +374,13 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       if buttonTag == 0 {
         resetBandButtons()
       } else {
-        bandFilters.removeValue(forKey: 0)
-        //allBandsButton.state = .off
+        bandFilters[buttonTag] = buttonTag
       }
     case false:
       self.bandFilters.removeValue(forKey: buttonTag)
-      if self.bandFilters.count == 0 {
-        //allBandsButton.state = .on
-        self.bandFilters[0] = 0
-      }
+//      if self.bandFilters.count == 0 {
+//        self.bandFilters[0] = 0
+//      }
     }
     
     filterMapLines()
@@ -433,7 +472,8 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       //self.clustermapView.removeOverlays(self.clustermapView.overlays)
     }
     
-    if bandFilters[0] == nil {
+    //if bandFilters[0] == nil {
+    if bandFilters.count != 0 {
       var polylines = [[MKPolyline]]()
       for band in bandFilters.values {
         // array of lines for a specific band

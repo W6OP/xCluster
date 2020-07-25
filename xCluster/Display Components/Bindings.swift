@@ -27,19 +27,19 @@ struct BandIdentifier : Identifiable, Hashable {
 }
 
 let bandData = [
-  BandIdentifier(band: "All",id: 0, isSelected: false),
-  BandIdentifier(band: "VHF",id: 99, isSelected: false),
-    BandIdentifier(band: "160m",id: 160, isSelected: false),
-    BandIdentifier(band: "80m",id: 80, isSelected: false),
-    BandIdentifier(band: "60m",id: 60, isSelected: false),
-    BandIdentifier(band: "40m",id: 40, isSelected: false),
-    BandIdentifier(band: "30m",id: 30, isSelected: false),
-    BandIdentifier(band: "20m",id: 20, isSelected: false),
-    BandIdentifier(band: "18m",id: 18, isSelected: false),
-    BandIdentifier(band: "15m",id: 15, isSelected: false),
-    BandIdentifier(band: "12m",id: 12, isSelected: false),
-    BandIdentifier(band: "10m",id: 10, isSelected: false),
-    BandIdentifier(band: "6m",id: 6, isSelected: false),
+  //BandIdentifier(band: "All",id: 0, isSelected: true),
+   // BandIdentifier(band: "VHF",id: 99, isSelected: true),
+    BandIdentifier(band: "160m",id: 160, isSelected: true),
+    BandIdentifier(band: "80m",id: 80, isSelected: true),
+    BandIdentifier(band: "60m",id: 60, isSelected: true),
+    BandIdentifier(band: "40m",id: 40, isSelected: true),
+    BandIdentifier(band: "30m",id: 30, isSelected: true),
+    BandIdentifier(band: "20m",id: 20, isSelected: true),
+    BandIdentifier(band: "18m",id: 18, isSelected: true),
+    BandIdentifier(band: "15m",id: 15, isSelected: true),
+    BandIdentifier(band: "12m",id: 12, isSelected: true),
+    BandIdentifier(band: "10m",id: 10, isSelected: true),
+    BandIdentifier(band: "6m",id: 6, isSelected: true),
 ]
 
 // MARK: - Cluster Definition

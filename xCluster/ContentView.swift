@@ -64,6 +64,9 @@ class Coordinator: NSObject, MKMapViewDelegate {
   
 } // end class
 
+
+// MARK: - Content View ------------------------------------------------------------.
+
 struct ContentView: View {
   @ObservedObject var userSettings = UserSettings()
   @EnvironmentObject var controller: Controller
@@ -79,7 +82,7 @@ struct ContentView: View {
       HStack{
         // show preferences
         Button(action: {self.showPreferences.toggle()}) {
-          Text("Configure")
+          Text("Settings")
         }
         .padding(.top, 4)
         .sheet(isPresented: $showPreferences) {
@@ -232,57 +235,45 @@ struct BandViewToggle: View {
 
   var body: some View {
     HStack{
+      Spacer()
       ForEach(bands.indices) { item in
-//        Toggle(isOn: self.$bands[item].isSelected) {
-//          Text(self.bands[item].band)
-//        }
         Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
-           print(self.bands[item].band)
           self.controller.setBandButtons(buttonTag: self.bands[item].id, state: state)
         })
         .tag(self.bands[item].id)
         .padding(.top, 5)
         .toggleStyle(SwitchToggleStyle())
-        
+        //.background(isSelected ? Color.orange : Color.purple)
+        Divider()
       }
+      Spacer()
     }
   }
 }
 
-/**
- Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
-    print(state)
- })
- 
- //.background(self.isBandSelected ? Color.orange : Color.purple)
- //      .onReceive([self.isBandSelected].publisher.first()) { (value) in
- //           print("New value is: \(value)")
- //      }
- */
-
-struct BandView: View {
-  var bands: [BandIdentifier]
-  @State private var isBandSelected = false
-  
-  var body: some View {
-    HStack{
-    ForEach(bands, id: \.self) { item in
-     
-      Button(action: {selectBand(bandId: item.id)}) {
-        Text(item.band)
-      }
-      .padding(.top, 5)
-      }
-    }
-  }
-}
+//struct BandView: View {
+//  var bands: [BandIdentifier]
+//  @State private var isBandSelected = false
+//
+//  var body: some View {
+//    HStack{
+//    ForEach(bands, id: \.self) { item in
+//
+//      Button(action: {selectBand(bandId: item.id)}) {
+//        Text(item.band)
+//      }
+//      .padding(.top, 5)
+//      }
+//    }
+//  }
+//}
 
 // MARK: - Picker of Cluster Names
 
 struct ClusterView: View {
 
   var controller: Controller
-  @State var prefixDataList = [Hit]()
+  @State private var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
   var clusters: [ClusterIdentifier]
@@ -336,24 +327,24 @@ struct ContentView_Previews: PreviewProvider {
   }
 }
 
-func configure() {
-  
-}
-
-func selectBand(bandId: Int) {
-  
-}
-
-func showDX(count: Int) {
-  
-}
-
-func filterDx(filter: Int) {
-  
-}
-
-// disConnect()
-//connect(clusterAddress: cluster.clusterAddress, clusterPort: cluster.clusterPort)
-func connect(clusterName: String) {
-  
-}
+//func configure() {
+//
+//}
+//
+//func selectBand(bandId: Int) {
+//
+//}
+//
+//func showDX(count: Int) {
+//
+//}
+//
+//func filterDx(filter: Int) {
+//
+//}
+//
+//// disConnect()
+////connect(clusterAddress: cluster.clusterAddress, clusterPort: cluster.clusterPort)
+//func connect(clusterName: String) {
+//
+//}

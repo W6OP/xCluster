@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "MapView.updateOverlays(from:):ContentView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #1 in Controller.buildMapLines(qrzInfoCombined:):Controller.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #4 in Controller.telnetManagerStatusMessageReceived(_:messageKey:message:):Controller.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "messageKey">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "SpotProcessor.processRawSpot(rawSpot:):SpotProcessor.swift">
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
