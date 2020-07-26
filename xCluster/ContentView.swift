@@ -90,7 +90,7 @@ struct ContentView: View {
           return PreferencesView()
         }
         
-        BandViewToggle(bands: bands, controller: controller)
+        BandViewToggle(bands: bands)
       }
       .padding(.top, -2).padding(.bottom, 2)
       .frame(maxWidth: .infinity)
@@ -109,8 +109,7 @@ struct ContentView: View {
       .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
       
         // MARK: - cluster selection and filtering.
-      ClusterView(controller: controller, clusters: clusters)
-        .environmentObject(controller)
+      ClusterView(clusters: clusters)
 
       // MARK: - Spot list display.
       HStack{
@@ -231,7 +230,7 @@ struct SpotRow: View {
 // https://stackoverflow.com/questions/60994255/swiftui-get-toggle-state-from-items-inside-a-list
 struct BandViewToggle: View {
   @State var bands: [BandIdentifier]
-  var controller: Controller
+  @EnvironmentObject var controller: Controller
 
   var body: some View {
     HStack{
@@ -272,7 +271,7 @@ struct BandViewToggle: View {
 
 struct ClusterView: View {
 
-  var controller: Controller
+  @EnvironmentObject var controller: Controller
   @State private var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
