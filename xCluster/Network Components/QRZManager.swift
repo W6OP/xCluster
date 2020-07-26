@@ -121,7 +121,7 @@ class QRZManager: NSObject {
         if let qrzInfo = qrzCallSignCache[callSign] {
             combineQRZInfo(qrzInfo: qrzInfo, frequency: frequency)
             //print ("cache hit for: \(callSign)")
-            print("cache contains \(qrzCallSignCache.count) call signs.")
+            //print("cache contains \(qrzCallSignCache.count) call signs.")
         } else {
             let parser = XMLParser(contentsOf: urlString)!
             

@@ -73,7 +73,7 @@ struct ContentView: View {
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   @State private var showPreferences = false
-  @State var isSoundOn = true
+  //@State var isSoundOn = true
   
   var body: some View {
     VStack{
@@ -109,9 +109,11 @@ struct ContentView: View {
       .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
       
         // MARK: - cluster selection and filtering.
+      
       ClusterView(clusters: clusters)
 
       // MARK: - Spot list display.
+      
       HStack{
         HStack{
           ScrollView {
@@ -214,7 +216,7 @@ struct SpotRow: View {
       .padding(.leading, 5)
       .padding(.top, -5)
       .padding(.bottom, -5)
-      //.border(Color.green)
+
       VStack{
         Divider()
         .frame(maxHeight: 1)
@@ -238,7 +240,6 @@ struct BandViewToggle: View {
       ForEach(bands.indices) { item in
         Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
           self.controller.filter = (self.bands[item].id, state )
-          //self.controller.setBandButtons(buttonTag: self.bands[item].id, state: state)
         })
         .tag(self.bands[item].id)
         .padding(.top, 5)
@@ -273,7 +274,7 @@ struct BandViewToggle: View {
 struct ClusterView: View {
 
   @EnvironmentObject var controller: Controller
-  @State private var prefixDataList = [Hit]()
+  //@State private var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
   var clusters: [ClusterIdentifier]
@@ -286,8 +287,12 @@ struct ClusterView: View {
                 Text("\(cluster.name):\(cluster.address):\(cluster.port)").tag(cluster.name)
             }
         }.frame(minWidth: 400, maxWidth: 400)
+          .onReceive([selectedCluster].publisher.first()) { value in
+            //self.controller.selectedCluster = self.selectedCluster
+            print(self.selectedCluster)
+        }
+        
         Button(action: {self.controller.selectedCluster = self.selectedCluster}) {
-          // .connect(clusterName: "\(self.selectedCluster)")
           Text("Connect")
         }
         .disabled(controller.haveSessionKey == false)
@@ -302,11 +307,9 @@ struct ClusterView: View {
           .textFieldStyle(RoundedBorderTextFieldStyle())
           .frame(maxWidth: 100)
         Button(action: {self.controller.clusterCommand = (20, "show dx/20")}) {
-          //self.controller.sendClusterCommand(tag: 20, command: "")
           Text("show dx/20")
         }
         Button(action: {self.controller.clusterCommand = (50, "show dx/50")}) {
-          //self.controller.sendClusterCommand(tag: 50, command: "")
             Text("show dx/50")
         }
       }
@@ -329,25 +332,3 @@ struct ContentView_Previews: PreviewProvider {
     ContentView().environmentObject(Controller())
   }
 }
-
-//func configure() {
-//
-//}
-//
-//func selectBand(bandId: Int) {
-//
-//}
-//
-//func showDX(count: Int) {
-//
-//}
-//
-//func filterDx(filter: Int) {
-//
-//}
-//
-//// disConnect()
-////connect(clusterAddress: cluster.clusterAddress, clusterPort: cluster.clusterPort)
-//func connect(clusterName: String) {
-//
-//}
