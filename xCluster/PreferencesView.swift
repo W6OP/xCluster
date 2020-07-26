@@ -11,13 +11,6 @@ import SwiftUI
 struct PreferencesView: View {
   @Environment(\.presentationMode) var presentationMode
   @ObservedObject var userSettings = UserSettings()
-  @State private var callsign = ""
-  @State private var userName = ""
-  @State private var password = ""
-  @State private var fullname = ""
-  @State private var location = ""
-  @State private var grid = ""
-  @State private var showPreferences = false
   
   var body: some View {
     VStack{

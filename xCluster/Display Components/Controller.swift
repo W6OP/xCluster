@@ -36,7 +36,28 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   @Published var statusMessage = [String]()
   @Published var haveSessionKey = false
   @Published var overlays = [MKPolyline]()
- 
+  
+  @Published var filter = (id: 0, state: false) {
+    didSet {
+      //print("\(filter.id) : \(filter.state)")
+      setBandButtons(buttonTag: filter.id, state: filter.state)
+    }
+  }
+  
+  @Published var selectedCluster = "" {
+    didSet {
+      //print(selectedCluster)
+      connect(clusterName: selectedCluster)
+    }
+  }
+  
+  @Published var clusterCommand = (tag: 0, command: "") {
+    didSet {
+      print(clusterCommand.tag)
+      sendClusterCommand(tag: clusterCommand.tag, command: clusterCommand.command)
+    }
+  }
+  
   var qrzManager = QRZManager()
   var telnetManager = TelnetManager()
   var spotProcessor = SpotProcessor()
@@ -67,6 +88,8 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   // MARK: - Initialization
   
   override init () {
+    
+    //filter = ""
     
     super.init()
     

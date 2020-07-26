@@ -229,15 +229,16 @@ struct SpotRow: View {
 
 // https://stackoverflow.com/questions/60994255/swiftui-get-toggle-state-from-items-inside-a-list
 struct BandViewToggle: View {
-  @State var bands: [BandIdentifier]
   @EnvironmentObject var controller: Controller
+  @State var bands: [BandIdentifier]
 
   var body: some View {
     HStack{
       Spacer()
       ForEach(bands.indices) { item in
         Toggle(self.bands[item].band, isOn: self.$bands[item].isSelected.didSet { (state) in
-          self.controller.setBandButtons(buttonTag: self.bands[item].id, state: state)
+          self.controller.filter = (self.bands[item].id, state )
+          //self.controller.setBandButtons(buttonTag: self.bands[item].id, state: state)
         })
         .tag(self.bands[item].id)
         .padding(.top, 5)
@@ -285,7 +286,8 @@ struct ClusterView: View {
                 Text("\(cluster.name):\(cluster.address):\(cluster.port)").tag(cluster.name)
             }
         }.frame(minWidth: 400, maxWidth: 400)
-        Button(action: {self.controller.connect(clusterName: "\(self.selectedCluster)")}) {
+        Button(action: {self.controller.selectedCluster = self.selectedCluster}) {
+          // .connect(clusterName: "\(self.selectedCluster)")
           Text("Connect")
         }
         .disabled(controller.haveSessionKey == false)
@@ -299,10 +301,12 @@ struct ClusterView: View {
         TextField("Call Filter", text: $callFilter)
           .textFieldStyle(RoundedBorderTextFieldStyle())
           .frame(maxWidth: 100)
-        Button(action: {self.controller.sendClusterCommand(tag: 20, command: "")}) {
+        Button(action: {self.controller.clusterCommand = (20, "show dx/20")}) {
+          //self.controller.sendClusterCommand(tag: 20, command: "")
           Text("show dx/20")
         }
-        Button(action: {self.controller.sendClusterCommand(tag: 50, command: "")}) {
+        Button(action: {self.controller.clusterCommand = (50, "show dx/50")}) {
+          //self.controller.sendClusterCommand(tag: 50, command: "")
             Text("show dx/50")
         }
       }
