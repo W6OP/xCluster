@@ -414,6 +414,13 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     print("timer fired.")
     let bs = String(UnicodeScalar(8)) //"BACKSPACE"
     sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
+    
+    UI {
+      self.statusMessage.append("keep alive timer fired")
+      if self.statusMessage.count > 50 {
+        self.statusMessage.removeFirst()
+      }
+    }
   }
   
   // MARK: - Map Implementation ----------------------------------------------------------------------------

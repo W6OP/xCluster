@@ -68,8 +68,9 @@ class Coordinator: NSObject, MKMapViewDelegate {
 // MARK: - Content View ------------------------------------------------------------.
 
 struct ContentView: View {
-  @ObservedObject var userSettings = UserSettings()
   @EnvironmentObject var controller: Controller
+  @ObservedObject var userSettings = UserSettings()
+  
   var bands: [BandIdentifier] = bandData
   var clusters: [ClusterIdentifier] = clusterData
   @State private var showPreferences = false
@@ -84,6 +85,7 @@ struct ContentView: View {
           Text("Settings")
         }
         .padding(.top, 4)
+        .padding(.leading, 4)
         .sheet(isPresented: $showPreferences) {
           
           return PreferencesView()
@@ -106,58 +108,23 @@ struct ContentView: View {
       .border(Color.black)
       .padding(.top, 0)
       .frame(minWidth: 1024, maxWidth: .infinity, minHeight: 800, maxHeight: .infinity)
+      .layoutPriority(1.0)
       
       // MARK: - Cluster selection and filtering.
-      
-      ClusterView(clusters: clusters)
-      
-      // MARK: - Spot list display.
-      
-      HStack{
-        HStack{
-          ScrollView {
-            VStack{
-              SpotHeader()
-              Divider()
-                .frame(maxHeight: 1)
-                .padding(-5)
-              ForEach(controller.spots, id: \.self) { spot in
-                SpotRow(spot: spot)
-              }
-            }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
-            .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
-          }
+      HStack {
+        ClusterControlView(clusters: clusters)
         }
-        .border(Color.gray)
-        
-        // MARK: - Status message display.
-       
-        HStack{
-          ScrollView {
-            VStack{
-              ForEach(controller.statusMessage, id: \.self) { message in
-                HStack{
-                  Text(message)
-                    .padding(.leading, 2)
-                    .foregroundColor(Color.black)
-                  Spacer()
-                }
-                .frame(maxHeight: 15)
-                .multilineTextAlignment(.leading)
-              }
-            }
-            .frame(minWidth: 300, maxWidth: .infinity, minHeight: 300, maxHeight: 300, alignment: .topLeading)
-            .background(Color(red: 209 / 255, green: 215 / 255, blue: 226 / 255))
-          }
-        }
-        .border(Color.gray)
-      }
-      .frame(maxWidth: .infinity, minHeight: 300, maxHeight: 300)
-      .padding(.vertical,0)
+        .background(Color.blue)
+        .opacity(0.50)
+        .frame(maxWidth: .infinity, minHeight:30, maxHeight: 30)
+        .padding(0)
+      
+      // MARK: - Cluster display and status messages.
+      
+      ClusterDisplayView()
+     
     } // end outer vstack
-      .frame(minWidth: 1300)
-    
+    .frame(minWidth: 1300)
   }
 } // end ContentView
 
@@ -255,12 +222,12 @@ struct BandViewToggle: View {
 
 // MARK: - Picker of Cluster Names
 
-struct ClusterView: View {
+struct ClusterControlView: View {
   
   @EnvironmentObject var controller: Controller
-  //@State private var prefixDataList = [Hit]()
   @State private var selectedCluster = "Select DX Spider Node"
   @State private var callFilter = ""
+  @State private var showSpots = true
   var clusters: [ClusterIdentifier]
   
   var body: some View {
@@ -284,6 +251,18 @@ struct ClusterView: View {
       }
       .padding(.trailing)
       
+//      Divider()
+//
+//      HStack {
+//        Toggle(isOn: $showSpots) {
+//            Text("Show Spots")
+//        }
+//        .padding()
+//        .toggleStyle(SwitchToggleStyle())
+//      }
+//      .background(showSpots ? Color.blue : Color.purple)
+//
+//      Divider()
       Spacer()
       
       HStack{
@@ -303,9 +282,9 @@ struct ClusterView: View {
       
       Spacer()
     }
-    .background(Color.blue)
-    .opacity(0.50)
-    .frame(maxWidth: .infinity)
+//    .background(Color.blue)
+//    .opacity(0.50)
+//    .frame(maxWidth: .infinity, minHeight:30, maxHeight: 30)
   }
 }
 
