@@ -92,7 +92,7 @@ struct ContentView: View {
         BandViewToggle(bands: bands)
       }
       .padding(.top, -2).padding(.bottom, 2)
-      .frame(maxWidth: .infinity)
+      .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30)
       .background(Color.blue)
       .opacity(0.50)
       
