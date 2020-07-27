@@ -40,19 +40,20 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   @Published var filter = (id: 0, state: false) {
     didSet {
       setBandButtons(buttonTag: filter.id, state: filter.state)
-      print( filter.id)
+      //print( filter.id)
     }
   }
   
-  @Published var selectedCluster = "" {
+  @Published var connectedCluster = "" {
     didSet {
-      connect(clusterName: selectedCluster)
+      connect(clusterName: connectedCluster)
+      //print("connect: \(connectedCluster)")
     }
   }
   
   @Published var clusterCommand = (tag: 0, command: "") {
     didSet {
-      print(clusterCommand.tag)
+      //print(clusterCommand.tag)
       sendClusterCommand(tag: clusterCommand.tag, command: clusterCommand.command)
     }
   }
@@ -91,7 +92,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     super.init()
     
     bandFilters = [99:99,160:160,80:80,60:60,40:40,30:30,20:20,18:18,15:15,12:12,10:10,6:6]
-
+    
     telnetManager.telnetManagerDelegate = self
     qrzManager.qrzManagerDelegate = self
     
@@ -109,12 +110,14 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    Connect to a cluster
    */
   func  connect(clusterName: String) {
-   
+    
     telnetManager.disconnect()
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
     if !cluster!.address.isEmpty {
-      self.statusMessage = [String]()
+      UI{
+        self.statusMessage = [String]()
+      }
       telnetManager.connect(host: cluster!.address, port: cluster!.port)
     }
   }
@@ -175,7 +178,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    - message: message text.
    */
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
-   
+    
     switch messageKey {
     case .CLUSTERTYPE:
       UI {
@@ -210,7 +213,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     }
     
     if self.statusMessage.count > 20 {
-      self.statusMessage.removeLast()
+      UI {
+        self.statusMessage.removeLast()
+      }
     }
   }
   
@@ -222,9 +227,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    - message: message text.
    */
   func qrzManagerdidGetSessionKey(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, haveSessionKey: Bool) {
-    
-    self.haveSessionKey = haveSessionKey
-
+    UI {
+      self.haveSessionKey = haveSessionKey
+    }
   }
   
   /**
@@ -242,9 +247,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   }
   
   func getQRZSessionKey(){
-
+    
     self.qrzManager.parseQRZSessionKeyRequest(name: self.qrzUsername, password: self.qrzPassword)
-
+    
   }
   
   // MARK: - Cluster Login and Commands
@@ -332,33 +337,33 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     let frequencyMajor = frequency.prefix(while: {$0 != "."})
     
     switch frequencyMajor {
-    
+      
     case "1":
       band = 160
     case "3", "4":
       band = 80
     case "5":
       band = 60
-      case "7":
+    case "7":
       band = 40
-      case "10":
+    case "10":
       band = 30
-      case "14":
+    case "14":
       band = 20
-      case "18":
+    case "18":
       band = 17
-      case "21":
+    case "21":
       band = 15
-      case "24":
+    case "24":
       band = 12
-      case "28":
+    case "28":
       band = 10
-      case "50","51","52","53","54":
+    case "50","51","52","53","54":
       band = 6
     default:
       band = 99
     }
-
+    
     return band
   }
   
@@ -396,7 +401,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     for polyLine in self.overlays {
       guard let band = Int(polyLine.title ?? "0") else { return }
       if bandFilters[band] == nil {
-        self.overlays = self.overlays.filter {$0.title != String(band)}
+        UI {
+          self.overlays = self.overlays.filter {$0.title != String(band)}
+        }
       }
     }
   }
@@ -425,7 +432,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   func buildMapLines(qrzInfoCombined: QRZInfoCombined) {
     
     if qrzInfoCombined.error {return}
-       
+    
     let locations = [
       CLLocationCoordinate2D(latitude: qrzInfoCombined.spotterLatitude, longitude: qrzInfoCombined.spotterLongitude),
       CLLocationCoordinate2D(latitude: qrzInfoCombined.dxLatitude, longitude: qrzInfoCombined.dxLongitude)]
@@ -435,7 +442,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     
     UI {
       if self.bandFilters[qrzInfoCombined.band] != nil {
-        self.overlays.append(polyline)
+        UI {
+          self.overlays.append(polyline)
+        }
       }
       //self.filterMapLines()
     }
@@ -445,47 +454,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
         self.overlays.remove(at: self.overlays.count - 1)
       }
     }
-  
-//    UI {
-//      //self.filterMapLines()
-//    }
   }
-  
-  /*
-   Delete any map lines that don't meet the filter criteria.
-   If the filter is "All" put all the map lines back
-   */
-//  func filterMapLines() {
-//    // remove map overlays that don't match that band(s)
-//    // TODO: add back lines when a filter button turns off
-//    UI {
-//      //self.clustermapView.removeOverlays(self.clustermapView.overlays)
-//    }
-//
-//    if bandFilters.count != 0 {
-//      var polylines = [[MKPolyline]]()
-//      for band in bandFilters.values {
-//        // array of lines for a specific band
-//        UI{
-//          polylines.append(self.overlays.filter { $0.title == String(band) }) // band
-//        }
-//        print("band filter: \(band)")
-//      }
-//
-//      // array of all filters lines
-//      //let flattened = polylines.flatMap { $0 }
-//      UI {
-//        //self.clustermapView.addOverlays(flattened)
-//      }
-//    }
-////    else {
-////      // show all lines
-////      UI {
-////        //self.clustermapView.removeOverlays(self.clustermapView.overlays)
-////        //self.clustermapView.addOverlays(self.overlays)
-////      }
-////    }
-//  }
   
 } // end class
 
