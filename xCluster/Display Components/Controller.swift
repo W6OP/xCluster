@@ -114,11 +114,12 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     telnetManager.disconnect()
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
-    if !cluster!.address.isEmpty {
+   
       UI{
+         if !cluster!.address.isEmpty {
         self.statusMessage = [String]()
       }
-      telnetManager.connect(host: cluster!.address, port: cluster!.port)
+        self.telnetManager.connect(host: cluster!.address, port: cluster!.port)
     }
   }
   
@@ -163,8 +164,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       }
     }
     
-    if self.statusMessage.count > 20 {
+    
       UI {
+        if self.statusMessage.count > 20 {
         self.statusMessage.removeLast()
       }
     }
@@ -212,8 +214,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       break
     }
     
-    if self.statusMessage.count > 20 {
-      UI {
+    
+    UI {
+      if self.statusMessage.count > 20 {
         self.statusMessage.removeLast()
       }
     }
@@ -320,8 +323,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
         }
       }
       
-      if spots.count > 100 {
+      
         UI {
+          if self.spots.count > 100 {
           self.spots.removeLast()
         }
       }
@@ -416,7 +420,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
     
     UI {
-      self.statusMessage.append("keep alive timer fired")
+      self.statusMessage.insert("keep alive timer fired", at: 0)
       if self.statusMessage.count > 50 {
         self.statusMessage.removeFirst()
       }
@@ -456,8 +460,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       //self.filterMapLines()
     }
     
-    if overlays.count > 50 {
+    
       UI{
+        if self.overlays.count > 50 {
         self.overlays.remove(at: self.overlays.count - 1)
       }
     }

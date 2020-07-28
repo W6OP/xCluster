@@ -11,16 +11,24 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "closure #1 in Controller.buildMapLines(qrzInfoCombined:):Controller.swift">
+         contextName = "MapView.updateOverlays(from:):ContentView.swift">
       </ContextState>
       <ContextState
-         contextName = "MapView.updateOverlays(from:):ContentView.swift">
+         contextName = "closure #1 in Controller.buildMapLines(qrzInfoCombined:):Controller.swift">
       </ContextState>
       <ContextState
          contextName = "SpotProcessor.processRawSpot(rawSpot:):SpotProcessor.swift">
       </ContextState>
       <ContextState
          contextName = "closure #2 in closure #1 in closure #1 in ClusterView.body.getter:ContentView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #7 in Controller.telnetManagerDataReceived(_:messageKey:message:):Controller.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.statusMessage.count">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
    </ContextStates>
 </VariablesViewState>
