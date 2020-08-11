@@ -81,7 +81,7 @@ class TelnetManager {
   
                 print("Connected")
                 
-                    self.telnetManagerDelegate?.telnetManagerDataReceived(self, messageKey: .CLUSTERTYPE, message: "Connected to Unknown cluster type")
+                    self.telnetManagerDelegate?.telnetManagerDataReceived(self, messageKey: .CLUSTERTYPE, message: "Connected") //  to Unknown cluster type
                 self.startReceive()
             case .waiting(let error):
                     self.telnetManagerDelegate?.telnetManagerStatusMessageReceived(self, messageKey: .WAITING, message: "Waiting: \(error)")
@@ -163,10 +163,11 @@ class TelnetManager {
     
     /**
      Disconnect from the telent session and break the connection.
+   close or bye
      */
     func disconnect() {
         if connected {
-            send("bye", commandType: .IGNORE)
+            send("close", commandType: .IGNORE)
             connection.cancel()
         }
     }

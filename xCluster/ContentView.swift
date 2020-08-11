@@ -96,7 +96,7 @@ struct ContentView: View {
       .padding(.top, -2).padding(.bottom, 2)
       .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30)
       .background(Color.blue)
-      .opacity(0.50)
+      .opacity(0.70)
       
       // MARK: - mapping container.
       
@@ -115,7 +115,7 @@ struct ContentView: View {
         ClusterControlView(clusters: clusters)
         }
         .background(Color.blue)
-        .opacity(0.50)
+        .opacity(0.70)
         .frame(maxWidth: .infinity, minHeight:30, maxHeight: 30)
         .padding(0)
       
@@ -245,33 +245,28 @@ struct ClusterControlView: View {
               if self.controller.connectedCluster != value {
                 self.controller.connectedCluster = value
               }
-              print("value: \(value)")
+              //print("value: \(value)")
             }
         }
       }
       .padding(.trailing)
-      
-//      Divider()
-//
-//      HStack {
-//        Toggle(isOn: $showSpots) {
-//            Text("Show Spots")
-//        }
-//        .padding()
-//        .toggleStyle(SwitchToggleStyle())
-//      }
-//      .background(showSpots ? Color.blue : Color.purple)
-//
-//      Divider()
+
+      Divider()
       Spacer()
       
       HStack{
         TextField("Call Filter", text: $callFilter)
           .textFieldStyle(RoundedBorderTextFieldStyle())
           .frame(maxWidth: 100)
+        
+        Divider()
+        
         Button(action: {self.controller.clusterCommand = (20, "show dx/20")}) {
           Text("show dx/20")
         }
+        
+        Divider()
+        
         Button(action: {self.controller.clusterCommand = (50, "show dx/50")}) {
           Text("show dx/50")
         }
@@ -282,9 +277,6 @@ struct ClusterControlView: View {
       
       Spacer()
     }
-//    .background(Color.blue)
-//    .opacity(0.50)
-//    .frame(maxWidth: .infinity, minHeight:30, maxHeight: 30)
   }
 }
 

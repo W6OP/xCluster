@@ -114,7 +114,6 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     telnetManager.disconnect()
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
-   
       UI{
          if !cluster!.address.isEmpty {
         self.statusMessage = [String]()
@@ -259,9 +258,15 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   /**
    Send the operators call sign to the telnet server.
+   set/name Ian
+   set/qth Morecambe, Lancashire IO84NB
+   set/location 48 34 n 12 12 e
+   set/qra IO84NB
+   set/home gb7mbc
    */
   func sendLogin() {
-    telnetManager.send(qrzUsername, commandType: .LOGON)
+    //telnetManager.send(qrzUsername, commandType: .LOGON)
+    sendClusterCommand(message: qrzUsername, commandType: .LOGON)
   }
   
   /**
@@ -416,7 +421,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   @objc func tickleServer() {
     print("timer fired.")
-    let bs = String(UnicodeScalar(8)) //"BACKSPACE"
+    let bs = "show/dx 1" // " " + String(UnicodeScalar(8)) //"BACKSPACE"
     sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
     
     UI {
