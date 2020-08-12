@@ -5,8 +5,8 @@
 //  Created by Peter Bourget on 7/6/20.
 //  Copyright © 2020 Peter Bourget. All rights reserved.
 //
-
 // shim between UI and Network Controllers
+
 import Cocoa
 import Foundation
 import SwiftUI
@@ -40,20 +40,19 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   @Published var filter = (id: 0, state: false) {
     didSet {
       setBandButtons(buttonTag: filter.id, state: filter.state)
-      //print( filter.id)
     }
   }
   
   @Published var connectedCluster = "" {
     didSet {
-      connect(clusterName: connectedCluster)
-      //print("connect: \(connectedCluster)")
+      if !connectedCluster.isEmpty {
+        connect(clusterName: connectedCluster)
+      }
     }
   }
   
   @Published var clusterCommand = (tag: 0, command: "") {
     didSet {
-      //print(clusterCommand.tag)
       sendClusterCommand(tag: clusterCommand.tag, command: clusterCommand.command)
     }
   }
@@ -75,7 +74,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   let REGION_RADIUS: CLLocationDistance = 10000000
   let CENTER_LATITUDE = 28.282778
   let CENTER_LONGITUDE = -40.829444
-  let KEEP_ALIVE = 200
+  let KEEP_ALIVE = 300 // 5 minutes
   
   let STANDARD_STROKE_COLOR = NSColor.blue
   let FT8_STROKE_COLOR = NSColor.red
@@ -85,6 +84,8 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   var bandFilters = [Int: Int]()
   
+  var lastSpotReceivedTime = Date()
+  
   // MARK: - Initialization
   
   override init () {
@@ -92,7 +93,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     super.init()
     
     bandFilters = [99:99,160:160,80:80,60:60,40:40,30:30,20:20,18:18,15:15,12:12,10:10,6:6]
-    
+
     telnetManager.telnetManagerDelegate = self
     qrzManager.qrzManagerDelegate = self
     
@@ -106,54 +107,87 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   // MARK: - Protocol Delegate Implementation
   
-  /**
-   Connect to a cluster
-   */
+
+   /// Connect to a cluster
   func  connect(clusterName: String) {
     
-    telnetManager.disconnect()
+    disconnect()
     let cluster = clusterData.first(where: {$0.name == clusterName})
     
+      // clear the status message
       UI{
-         if !cluster!.address.isEmpty {
-        self.statusMessage = [String]()
-      }
-        self.telnetManager.connect(host: cluster!.address, port: cluster!.port)
-    }
+        if !cluster!.address.isEmpty {
+            self.statusMessage = [String]()
+          }
+        }
+    
+    self.telnetManager.connect(host: cluster!.address, port: cluster!.port)
   }
   
-  /**
-   Telnet Manager protocol - Process a status message from the Telnet Manager.
-   - parameters:
-   - telnetManager: Reference to the class sending the message.
-   - messageKey: Key associated with this message.
-   - message: message text.
-   */
+  
+   /// Disconnect on cluster change or application termination.
+  func disconnect() {
+    telnetManager.disconnect()
+  }
+  
+
+   /// Reconnect when the connection drops.
+  func reconnectCluster() {
+    print("Reconnect attempt")
+    disconnect()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        self.reconnect()
+    }
+    //connect(clusterName: connectedCluster)
+  }
+  
+  
+   /// Telnet Manager protocol - Process a status message from the Telnet Manager.
+   /// - parameters:
+   /// - telnetManager: Reference to the class sending the message.
+   /// - messageKey: Key associated with this message.
+   /// - message: message text.
   func telnetManagerStatusMessageReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
     
-    //print((messageKey))
-    
     switch messageKey {
-    case .LOGON:
+    case .invalid:
+      return
+      
+    case .logon:
       self.sendLogin()
-    case .WAITING:
+    
+    case .logonCompleted:
+      sendPersonalData()
+      
+    case .waiting:
       UI {
         self.statusMessage.append(message)
       }
       
-    case .ERROR:
+      // Connection reset by peer
+      // Socket is not connected
+    case .disconnected:
+      reconnectCluster()
+      
+    case .error:
       UI {
+        print("Error: \(message)")
         self.statusMessage.append(message)
       }
-    case .CALL:
-      self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.LOGON)
-    case .NAME:
-      self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.CALLSIGN)
-    case .QTH:
-      self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.QTH)
-    case .LOCATION:
-      self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.MESSAGE)// want lat/long
-    case .INFO:
+      
+    case .call:
+      self.sendClusterCommand(message: "\(callsign)", commandType: CommandType.logon)
+      
+    case .name:
+      self.sendClusterCommand(message: "set/name \(fullname)", commandType: CommandType.callsign)
+      
+    case .qth:
+      self.sendClusterCommand(message: "set/qth \(location)", commandType: CommandType.qth)
+      
+    case .location:
+      self.sendClusterCommand(message: "set/qra \(grid)", commandType: CommandType.message)// want lat/long
+      
+    case .info:
       UI {
         self.statusMessage.append(message)
       }
@@ -163,71 +197,77 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       }
     }
     
-    
       UI {
-        if self.statusMessage.count > 20 {
-        self.statusMessage.removeLast()
+        // don't propagate to xCluster
+        if self.statusMessage.count > 200 {
+        self.statusMessage.removeFirst()
       }
     }
   }
   
-  /**
-   Telnet Manager protocol - Process information messages from the Telnet Manager.
-   - parameters:
-   - telnetManager: Reference to the class sending the message.
-   - messageKey: Key associated with this message.
-   - message: message text.
-   */
+
+   /// Telnet Manager protocol - Process information messages from the Telnet Manager
+  ///
+   /// - parameters:
+   /// - telnetManager: Reference to the class sending the message.
+   /// - messageKey: Key associated with this message.
+   /// - message: message text.
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String) {
     
     switch messageKey {
-    case .CLUSTERTYPE:
+    case .clustertype:
       UI {
         self.statusMessage.append(message.condenseWhitespace())
       }
       break
-    case .ANNOUNCEMENT:
+    case .announcement:
       UI {
         self.statusMessage.append(message.condenseWhitespace() )
       }
       break
-    case .INFO:
+    case .info:
+      UI {
+        let messages = self.limitMessageLength(message: message)
+        
+        for item in messages {
+          self.statusMessage.append(item)
+        }
+      }
+    case .error:
       UI {
         self.statusMessage.append(message)
       }
-    case .ERROR:
-      UI {
-        self.statusMessage.append(message)
-      }
-    case .SPOTRECEIVED:
+    case .spotreceived:
       UI {
         self.parseClusterSpot(message: message, messageType: messageKey)
-        // "DX de W3EX:      28075.6  N9AMI                                       1912Z FN20\a\a"
+        /// "DX de W3EX:      28075.6  N9AMI                                       1912Z FN20\a\a"
       }
-    case .SHOWDXSPOTS:
+    case .showdxspots:
       UI {
         self.parseClusterSpot(message: message, messageType: messageKey)
-        // "24915.0  PU0FDN      16-Jul-2020 1912Z  FM19TM<>HI36SD               <W6YTG>"
+        /// "24915.0  PU0FDN      16-Jul-2020 1912Z  FM19TM<>HI36SD               <W6YTG>"
       }
     default:
       break
     }
     
-    
     UI {
-      if self.statusMessage.count > 20 {
-        self.statusMessage.removeLast()
+      // don't propagate to xCluster
+      if self.statusMessage.count > 200 {
+        self.statusMessage.removeFirst()
       }
     }
   }
   
-  /**
-   QRZ Manager protocol - Retrieve the session key from QRZ.com.
-   - parameters:
-   - qrzManager: Reference to the class sending the message.
-   - messageKey: Key associated with this message.
-   - message: message text.
-   */
+  // MARK: - QRZ Implementation ----------------------------------------------------------------------------
+  
+
+   /// QRZ Manager protocol - Retrieve the session key from QRZ.com
+  ///
+   /// - parameters:
+   /// - qrzManager: Reference to the class sending the message.
+   /// - messageKey: Key associated with this message.
+   /// - message: message text.
   func qrzManagerdidGetSessionKey(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, haveSessionKey: Bool) {
     UI {
       self.haveSessionKey = haveSessionKey
@@ -249,9 +289,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   }
   
   func getQRZSessionKey(){
-    
     self.qrzManager.parseQRZSessionKeyRequest(name: self.qrzUsername, password: self.qrzPassword)
-    
   }
   
   // MARK: - Cluster Login and Commands
@@ -266,7 +304,22 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
    */
   func sendLogin() {
     //telnetManager.send(qrzUsername, commandType: .LOGON)
-    sendClusterCommand(message: qrzUsername, commandType: .LOGON)
+    sendClusterCommand(message: qrzUsername, commandType: .logon)
+  }
+  
+  func sendPersonalData() {
+    /**
+     set/name Ian
+     set/qth Morecambe, Lancashire IO84NB
+     set/location 48 34 n 12 12 e
+     set/qra IO84NB
+     set/home gb7mbc
+     */
+    
+    sendClusterCommand(message: "set/name \(fullname)", commandType: .ignore)
+    sendClusterCommand(message: "set/qth \(location)", commandType: .ignore)
+    sendClusterCommand(message: "set/qra \(grid)", commandType: .ignore)
+    sendClusterCommand(message: "set/ft8", commandType: .ignore)
   }
   
   /**
@@ -289,27 +342,42 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
     
     switch tag {
     case 20:
-      telnetManager.send("show/dx 20", commandType: .SHOWDXSPOTS)
+      telnetManager.send("show/dx 20", commandType: .showdxspots)
     case 50:
-      telnetManager.send("show/dx 50", commandType: .SHOWDXSPOTS)
+      telnetManager.send("show/dx 50", commandType: .showdxspots)
     default:
-      telnetManager.send(command, commandType: .IGNORE)
+      telnetManager.send(command, commandType: .ignore)
     }
+  }
+  
+  func limitMessageLength(message: String) -> [String] {
+    
+    var messages = [String]()
+    
+    if message.count > 80 {
+      messages = message.components(withMaxLength: 80)
+    } else {
+      messages.append(message)
+    }
+  
+    return messages
   }
   
   /**
    "DX de W3EX:      28075.6  N9AMI                                       1912Z FN20\a\a"
    */
   func parseClusterSpot(message: String, messageType: TelnetManagerMessage){
+   
     do {
       var spot = ClusterSpot(id: 0, dxStation: "", frequency: "", spotter: "", dateTime: "", comment: "", grid: "")
       
       switch messageType {
-      case .SHOWDXSPOTS:
+      case .showdxspots:
         spot = try self.spotProcessor.processRawShowDxSpot(rawSpot: message)
         break
-      case .SPOTRECEIVED:
+      case .spotreceived:
         spot = try self.spotProcessor.processRawSpot(rawSpot: message)
+        lastSpotReceivedTime = Date()
       default:
         return
       }
@@ -319,6 +387,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
       }
       
       UI {
+        //spot.comment = self.printDateTime(message: "Spot:")
         self.spots.insert(spot, at: 0)
       }
       
@@ -420,16 +489,77 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   // MARK: - Keep Alive Timer ----------------------------------------------------------------------------
   
   @objc func tickleServer() {
-    print("timer fired.")
-    let bs = "show/dx 1" // " " + String(UnicodeScalar(8)) //"BACKSPACE"
-    sendClusterCommand(message: bs, commandType: CommandType.KEEPALIVE)
+    // if its been 5 minutes since last spot send keep alive
+    //let date = Date()
+    if minutesBetweenDates(lastSpotReceivedTime , Date()) > 5 {
+      _ = printDateTime(message: "Last spot received: \(lastSpotReceivedTime) - Time now: ")
+      //lastSpotReceivedTime = date
+      
+      let bs = "show/time" //" " + String(UnicodeScalar(8)) //"(space)BACKSPACE"
+      // show/moon
+      sendClusterCommand(message: bs, commandType: CommandType.keepalive)
+    }
     
-    UI {
-      self.statusMessage.insert("keep alive timer fired", at: 0)
-      if self.statusMessage.count > 50 {
-        self.statusMessage.removeFirst()
+    // if over 15 minutes, disconnect and reconnect
+    if minutesBetweenDates(lastSpotReceivedTime , Date()) > 15 {
+      _ = printDateTime(message: "Reconnecting - Last spot received: \(lastSpotReceivedTime) - Time now: ")
+     
+      disconnect()
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+          self.reconnect()
       }
     }
+  }
+  
+  //Your function here
+  func reconnect() {
+      connect(clusterName: connectedCluster)
+  }
+  
+  /**
+   Calculate the number of minutes between two dates
+   */
+  func minutesBetweenDates(_ oldDate: Date, _ newDate: Date) -> CGFloat {
+
+      //get both times sinces refrenced date and divide by 60 to get minutes
+      let newDateMinutes = newDate.timeIntervalSinceReferenceDate/60
+      let oldDateMinutes = oldDate.timeIntervalSinceReferenceDate/60
+
+      //then return the difference
+      return CGFloat(newDateMinutes - oldDateMinutes)
+  }
+  
+  func printDateTime(message: String) -> String {
+    // *** Create date ***
+    let date = Date()
+
+    // *** create calendar object ***
+    var calendar = Calendar.current
+    
+    // *** define calendar components to use as well Timezone to UTC ***
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+
+    // *** Get All components from date ***
+    //let components = calendar.dateComponents([.hour, .year, .minute], from: date)
+
+    // *** Get Individual components from date ***
+    let hour = calendar.component(.hour, from: date)
+    let minutes = calendar.component(.minute, from: date)
+    let seconds = calendar.component(.second, from: date)
+    print("\(message) \(hour):\(minutes):\(seconds)")
+    return "\(message) \(hour):\(minutes):\(seconds)"
+  }
+  
+  // CORRECT WAY TO DO COMMENTS
+  /// Returns the numeric value of the given digit represented as a Unicode scalar.
+  ///
+  /// - Parameters:
+  ///   - digit: The Unicode scalar whose numeric value should be returned.
+  ///   - radix: The radix, between 2 and 36, used to compute the numeric value.
+  /// - Returns: The numeric value of the scalar.
+  func numericValue(of digit: UnicodeScalar, radix: Int = 10) -> Int {
+    // ...
+    return 1
   }
   
   // MARK: - Map Implementation ----------------------------------------------------------------------------
@@ -475,6 +605,15 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
 } // end class
 
+extension String {
+    func components(withMaxLength length: Int) -> [String] {
+        return stride(from: 0, to: self.count, by: length).map {
+            let start = self.index(self.startIndex, offsetBy: $0)
+            let end = self.index(start, offsetBy: length, limitedBy: self.endIndex) ?? self.endIndex
+            return String(self[start..<end])
+        }
+    }
+}
 
 // MARK: - User Defaults
 

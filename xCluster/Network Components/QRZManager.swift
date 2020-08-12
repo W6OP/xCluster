@@ -82,7 +82,7 @@ class QRZManager: NSObject {
             print(self.results ?? "No results")
             self.sessionKey = self.sessionDictionary?["Key"]?.trimmingCharacters(in: .whitespaces)
             self.haveSessionKey = true
-            self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .SESSION, haveSessionKey: true)
+          self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .session, haveSessionKey: true)
         }
     }
     
@@ -252,7 +252,7 @@ class QRZManager: NSObject {
                 qrzInfoCombined.error = qrzCallSignPairCopy[1].error
             }
             
-            self.qrzManagerDelegate?.qrzManagerdidGetCallsignData(self, messageKey: .INFORMATION, qrzInfoCombined: qrzInfoCombined)
+          self.qrzManagerDelegate?.qrzManagerdidGetCallsignData(self, messageKey: .information, qrzInfoCombined: qrzInfoCombined)
         }
     }
     

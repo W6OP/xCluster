@@ -69,23 +69,6 @@ public struct Queue<T> {
     }
 }
 
-/*
- var queue = Queue<Int>()
- queue.enqueue(10)
- queue.enqueue(3)
- queue.enqueue(57)
- 
- print(queue)
- 
- var queue2 = Queue<String>()
- queue2.enqueue("mad")
- queue2.enqueue("lad")
- if let first = queue2.dequeue() {
- print(first)
- }
- print(queue2)
- */
-
 public class Node<T> {
     var value: T
     var next: Node<T>?
@@ -192,7 +175,6 @@ extension LinkedList: CustomStringConvertible {
 }
 
 // https://stackoverflow.com/questions/31083348/parsing-xml-from-url-in-swift/31084545#31084545
-@available(OSX 10.15, *)
 extension QRZManager: XMLParserDelegate {
     
     // initialize results structure
@@ -252,52 +234,53 @@ extension QRZManager: XMLParserDelegate {
 }
 
  enum CommandType : String {
-    case ANNOUNCE = "Announcement"
-    case CALLSIGN = "Callsign"
-    case CONNECT = "Connect"
-    case ERROR = "Error"
-    case IGNORE = "A reset so unsolicited messages don't get processed incorrectly"
-    case LOGON = "Logon"
-    case SHOWDXSPOTS = "Show Spots"
-    case YES = "Yes"
-    case MESSAGE = "Message to send"
-    case KEEPALIVE = "Keep alive"
-    case QTH = "Your QTH"
+    case announce = "Announcement"
+    case callsign = "Callsign"
+    case connect = "Connect"
+    case error = "Error"
+    case ignore = "A reset so unsolicited messages don't get processed incorrectly"
+    case logon = "Logon"
+    case showdxspots = "Show Spots"
+    case yes = "Yes"
+    case message = "Message to send"
+    case keepalive = "Keep alive"
+    case qth = "Your QTH"
 }
 
 /**
  Unify message nouns going to the view controller
  */
  enum TelnetManagerMessage : String {
-    case ANNOUNCEMENT = "Announcement"
-    case CLUSTERTYPE = "Cluster Type"
-    case CONNECTED = "Connected"
-    case DISCONNECTED = "Disconnected"
-    case ERROR = "Error"
-    case INFO = "Cluster information received"
-    case LOGON = "Logon message received"
-    case SHOWDXSPOTS = "Show DX received"
-    case SPOTRECEIVED = "Spot received"
-    case WAITING = "Waiting"
-    case CALL = "Your call"
-    case QTH = "Your QTH"
-    case NAME = "Your name"
-    case LOCATION = "Your grid"
+    case announcement = "Announcement"
+    case clustertype = "Cluster Type"
+    case connected = "Connected"
+    case disconnected = "Disconnected"
+    case error = "Error"
+    case info = "Cluster information received"
+    case invalid = "Invaid command"
+    case logon = "Logon message received"
+    case logonCompleted = "Logon complete"
+    case showdxspots = "Show DX received"
+    case spotreceived = "Spot received"
+    case waiting = "Waiting"
+    case call = "Your call"
+    case qth = "Your QTH"
+    case name = "Your name"
+    case location = "Your grid"
 }
 
  enum QRZManagerMessage : String {
-    case SESSION = "Session key available"
-    case INFORMATION = "CCall sign information"
+    case session = "Session key available"
+    case information = "CCall sign information"
     
 }
 
-
  enum ClusterType : String {
-    case ARCLUSTER = "AR-Cluster"
-    case CCCLUSTER = "CC-Cluster"
-    case DXSPIDER = "DXSpider"
-    case VE7CC = "VE7CC"
-    case UNKNOWN = "Unknown"
+    case arcluster = "AR-Cluster"
+    case cccluster = "CC-Cluster"
+    case dxspider = "DXSpider"
+    case ve7cc = "VE7CC"
+    case unknown = "Unknown"
 }
 
 enum SpotError: Error {
@@ -322,94 +305,6 @@ func BG(_ block: @escaping ()->Void) {
  */
 func UI(_ block: @escaping ()->Void) {
     DispatchQueue.main.async(execute: block)
-}
-
-/*
- 
- */
-class Utility: NSObject {
-    
-    override init() {
-        super.init()
-    }
-    
-    func loadStandardURLSet() -> Dictionary<Int, String> {
-        
-        var collection = [Int: String]()
-        
-        // subscript is key, not index
-        collection[1] = "http://www.dxsummit.fi/DxSpots.aspx?count=25&range=1"
-        collection[2] = "http://www.dxsummit.fi/DxSpots.aspx?count=250&range=1"
-        collection[3] = "http://www.dxsummit.fi/DxSpots.aspx?count=500&range=1"
-        collection[4] = "http://www.dxsummit.fi/DxSpots.aspx?count=1000&range=1"
-        collection[5] = ""
-        collection[6] = ""
-        collection[7] = ""
-        collection[8] = ""
-        collection[9] = ""
-        collection[10] = ""
-        collection[11] = ""
-        
-        return collection
-    }
-    
-} // end class
-
-// http://www.rockhoppertech.com/blog/swift-nstableview-and-nsarraycontroller/
- class ClusterNames : NSObject {
-    
-    @objc dynamic var clusterName: String
-    @objc dynamic var clusterAddress: String
-    @objc dynamic var clusterPort: String
-    
-    override init() {
-        clusterName = "Select DXSpider Node"
-        clusterAddress = "family"
-        clusterPort = "0"
-        super.init()
-    }
-    
-    init(clusterName:String, clusterAddress:String, clusterPort:String) {
-        self.clusterName = clusterName
-        self.clusterAddress = clusterAddress
-        self.clusterPort = clusterPort
-        super.init()
-    }
-}
-
- // MARK: - ClusterSpots ----------------------------------------------------------------------------
-
-// spot for display in tableview
-class ClusterSpots : NSObject {
-    
-    @objc dynamic var dx: String
-    @objc dynamic var frequency: String
-    @objc dynamic var spotter: String
-    @objc dynamic var datetime: String
-    @objc dynamic var comment: String
-    @objc dynamic var grid: String
-    
-    override init() {
-        dx = "W6OP"
-        frequency = "10000"
-        spotter = "W6OP"
-        datetime = "1200"
-        comment = "Comment"
-        grid = "CM98ha"
-        
-        super.init()
-    }
-    
-    init(dx:String, frequency:String, spotter:String, comment:String, datetime:String,  grid:String) {
-        self.dx = dx
-        self.frequency = frequency
-        self.spotter = spotter
-        self.datetime = datetime
-        self.comment = comment
-        self.grid = grid
-        
-        super.init()
-    }
 }
 
 // MARK: - QRZ Structs ----------------------------------------------------------------------------
@@ -520,86 +415,4 @@ struct QRZInfoCombined  { //: Hashable
         }
     }
 } // end
-
-// MARK: - Overlay Spot Structs ----------------------------------------------------------------------------
-
-//struct OverlaySpot {
-//    var dx = ""
-//    var spotter = ""
-//    var frequency = "0.0"
-//    var rawFrequency: Float = 0.0
-//    var comment = ""
-//    // https://stackoverflow.com/questions/45533460/cannot-invoke-initializer-for-type-float-with-an-argument-of-type-any  USE THIS FOR DATE AND TIME
-//    var datetime = ""
-//    var grid = ""
-//    var band = 0
-//    var mode = ""
-//    var country: String = ""
-//    //var latitude: Double = 00
-//    //var longitude: Double = 00
-//    var lotw = false
-//    var identifier = "0"
-//    var isInvalid = false
-//
-//    init(dx:String, frequency:String, spotter:String, comment:String, datetime:String,  grid:String) {
-//        self.dx = dx
-//        self.frequency = frequency
-//        self.spotter = spotter
-//        self.datetime = datetime
-//        self.comment = comment
-//        self.grid = grid
-//
-//        self.identifier = UUID().uuidString
-//
-//        setFrequency(frequency: frequency)
-//    }
-//
-//    mutating func setFrequency(frequency: String) {
-//        self.rawFrequency = Float(frequency) ?? 0.0
-//        self.band = OverlaySpot.setBand(frequency: self.rawFrequency)
-//    }
-//
-//    static func setBand(frequency: Float) -> Int {
-//
-//        switch frequency {
-//        case 1.8...2.0:
-//            return 160
-//        case 3.5...4.0:
-//            return 80
-//        case 5.0...6.0:
-//            return 60
-//        case 7.0...7.3:
-//            return 40
-//        case 10.1...10.5:
-//            return 30
-//        case 14.0...14.350:
-//            return 20
-//        case 18.068...18.168:
-//            return 17
-//        case 21.0...21.450:
-//            return 15
-//        case 24.890...24.990:
-//            return 12
-//        case 28.0...29.7:
-//            return 10
-//        case 70.0...74.0:
-//            return 4
-//        case 50.0...54.0:
-//            return 6
-//        case 144.0...148.0:
-//            return 2
-//        default:
-//            return 0
-//        }
-//    }
-//} // end OverlaySpot struct
-
-
-//<QRZDatabase xmlns="http://xmldata.qrz.com" version="1.33">
-//<Session>
-//<Error>Invalid session key</Error>
-//<GMTime>Sat Mar 2 21:44:10 2019</GMTime>
-//<Remark>cpu: 0.011s</Remark>
-//</Session>
-//</QRZDatabase>
 
