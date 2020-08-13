@@ -25,7 +25,9 @@ struct ClusterSpot: Identifiable, Hashable {
   var grid: String
 }
 
-public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZManagerDelegate {
+// MARK: - Controller Class
+
+public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDelegate {
   
   private let concurrentSpotProcessorQueue =
     DispatchQueue(
@@ -88,9 +90,7 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   
   // MARK: - Initialization
   
-  override init () {
-    
-    super.init()
+  init () {
     
     bandFilters = [99:99,160:160,80:80,60:60,40:40,30:30,20:20,18:18,15:15,12:12,10:10,6:6]
 
@@ -135,10 +135,9 @@ public class  Controller: NSObject, ObservableObject, TelnetManagerDelegate, QRZ
   func reconnectCluster() {
     print("Reconnect attempt")
     disconnect()
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         self.reconnect()
     }
-    //connect(clusterName: connectedCluster)
   }
   
   

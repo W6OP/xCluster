@@ -10,7 +10,6 @@ import Cocoa
 import Network
 import os
 
-@available(OSX 10.15, *)
 protocol TelnetManagerDelegate: class {
  
   func connect(clusterName: String)
@@ -20,8 +19,7 @@ protocol TelnetManagerDelegate: class {
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String)
 }
 
-
-@available(OSX 10.15, *)
+///
 class TelnetManager {
   
   // MARK: - Field Definitions ----------------------------------------------------------------------------

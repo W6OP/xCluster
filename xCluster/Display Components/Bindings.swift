@@ -27,8 +27,6 @@ struct BandIdentifier : Identifiable, Hashable {
 }
 
 let bandData = [
-  //BandIdentifier(band: "All",id: 0, isSelected: true),
-   // BandIdentifier(band: "VHF",id: 99, isSelected: true),
     BandIdentifier(band: "160m",id: 160, isSelected: true),
     BandIdentifier(band: "80m",id: 80, isSelected: true),
     BandIdentifier(band: "60m",id: 60, isSelected: true),

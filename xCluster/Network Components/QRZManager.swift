@@ -12,283 +12,249 @@ import CoreLocation
 import os
 import CallParser
 
-@available(OSX 10.15, *)
 protocol QRZManagerDelegate: class {
-    
-    func qrzManagerdidGetSessionKey(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, haveSessionKey: Bool)
-    
-    func qrzManagerdidGetCallsignData(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, qrzInfoCombined: QRZInfoCombined)
+  
+  func qrzManagerdidGetSessionKey(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, haveSessionKey: Bool)
+  
+  func qrzManagerdidGetCallsignData(_ qrzManager: QRZManager, messageKey: QRZManagerMessage, qrzInfoCombined: QRZInfoCombined)
 }
 
 // TODO: check session key expiration and renew
 
-@available(OSX 10.15, *)
 class QRZManager: NSObject {
+  
+  private let serialQRZProcessorQueue =
+    DispatchQueue(
+      label: "com.w6op.virtualcluster.qrzProcessorQueue")
+  
+  // MARK: - Field Definitions
+  
+  static let model_log = OSLog(subsystem: "com.w6op.TelnetManager", category: "Model")
+  // delegate to pass messages back to viewcontroller
+  weak var qrzManagerDelegate:QRZManagerDelegate?
+  let callParser = PrefixFileParser()
+  var callLookup = CallLookup()
+  
+  var sessionKey: String!
+  var haveSessionKey: Bool = false
+  
+  // a few variables to hold the results as we parse the XML
+  var recordKey = "Session"
+  var dictionaryKeys = Set<String>(["Key", "Count", "SubExp", "GMTime", "Remark"])
+  var results: [[String: String]]?         // the whole array of dictionaries
+  var results2: QRZInfo!
+  var sessionDictionary: [String: String]! // the current dictionary
+  var currentValue: String?
+  var locationDictionary: (spotter: [String: String], dx: [String: String])!
+  
+  var qrzCallSignCache = [String: QRZInfo]()
+  var qrzCallSignPair = [QRZInfo]()
+  var qrzInfo: QRZInfo!
+  
+  // MARK: - Overrides
+  
+  override init() {
     
-    private let serialQRZProcessorQueue =
-        DispatchQueue(
-            label: "com.w6op.virtualcluster.qrzProcessorQueue")
+    super.init()
     
-    // MARK: - Field Definitions ----------------------------------------------------------------------------
+    callLookup = CallLookup(prefixFileParser: callParser)
+  }
+  
+  // MARK: - Network Implementation
+  
+  /**
+   Get a Session Key from QRZ.com.
+   - parameters:
+   - name: logon name with xml plan.
+   - password: password for account. LetsFindSomeDXToday$56
+   */
+  func parseQRZSessionKeyRequest(name: String, password: String) {
     
-    static let model_log = OSLog(subsystem: "com.w6op.TelnetManager", category: "Model")
-    // delegate to pass messages back to viewcontroller
-    weak var qrzManagerDelegate:QRZManagerDelegate?
-    var callParser = CallLookup()
+    recordKey = "Session"
+    dictionaryKeys = Set<String>(["Key", "Count", "SubExp", "GMTime", "Remark"])
     
-    var sessionKey: String!
-    var haveSessionKey: Bool = false
+    let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?username=\(name);password=\(password);VirtualCluster=1.0")
     
-    // a few variables to hold the results as we parse the XML
-    var recordKey = "Session"
-    var dictionaryKeys = Set<String>(["Key", "Count", "SubExp", "GMTime", "Remark"])
-    var results: [[String: String]]?         // the whole array of dictionaries
-    var results2: QRZInfo!
-    var sessionDictionary: [String: String]! // the current dictionary
-    var currentValue: String?
-    var locationDictionary: (spotter: [String: String], dx: [String: String])!
+    let parser = XMLParser(contentsOf: urlString!)!
     
-    var qrzCallSignCache = [String: QRZInfo]()
-    var qrzCallSignPair = [QRZInfo]()
-    var qrzInfo: QRZInfo!
+    parser.delegate = self
+    if parser.parse() {
+      print(self.results ?? "No results")
+      self.sessionKey = self.sessionDictionary?["Key"]?.trimmingCharacters(in: .whitespaces)
+      self.haveSessionKey = true
+      self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .session, haveSessionKey: true)
+    }
+  }
+  
+  /**
+   Request all the call information from QRZ.com to make a line on the map.
+   - parameters:
+   - spotterCall: first of a pair call signs to look up.
+   - dxCall: second of a pair call signs to look up.
+   */
+  func getConsolidatedQRZInformation(spotterCall: String, dxCall: String, frequency: String) {
     
-    // MARK: - Overrides ----------------------------------------------------------------------------
+    serialQRZProcessorQueue.sync(flags: .barrier) { [weak self] in
+      self?.parseQRZData(callSign: spotterCall, frequency: frequency)
+      self?.parseQRZData(callSign: dxCall, frequency: frequency)
+    }
+  }
+  
+  /**
+   Request all the call information from QRZ.com.
+   - parameters:
+   - call: call sign to look up.
+   */
+  func parseQRZData(callSign: String, frequency: String) {
     
-    override init() {
-        
-        super.init()
-        
+    recordKey = "Callsign"
+    sessionDictionary = [String: String]()
+    dictionaryKeys = Set<String>(["call", "country", "lat", "lon", "grid", "lotw", "aliases"])
+    
+    // this dies if session key is missing
+    guard let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?s=\(String(self.sessionKey));callsign=\(callSign)") else {
+      print("Invalid call sign: \(callSign)") // 'PY2OT  05'
+      return
     }
     
-    // MARK: - Network Implementation ----------------------------------------------------------------------------
-    
-    /**
-     Get a Session Key from QRZ.com.
-     - parameters:
-     - name: logon name with xml plan.
-     - password: password for account. LetsFindSomeDXToday$56
-     */
-    func parseQRZSessionKeyRequest(name: String, password: String) {
-        
-        recordKey = "Session"
-        dictionaryKeys = Set<String>(["Key", "Count", "SubExp", "GMTime", "Remark"])
-        
-        let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?username=\(name);password=\(password);VirtualCluster=1.0")
+    // first check to see if I have the info cached already
+    if let qrzInfo = qrzCallSignCache[callSign] {
+      combineQRZInfo(qrzInfo: qrzInfo, frequency: frequency)
+      //print ("cache hit for: \(callSign)")
+      //print("cache contains \(qrzCallSignCache.count) call signs.")
+    } else {
+      let parser = XMLParser(contentsOf: urlString)!
       
-        let parser = XMLParser(contentsOf: urlString!)!
-        
-        parser.delegate = self
-        if parser.parse() {
-            print(self.results ?? "No results")
-            self.sessionKey = self.sessionDictionary?["Key"]?.trimmingCharacters(in: .whitespaces)
-            self.haveSessionKey = true
-          self.qrzManagerDelegate?.qrzManagerdidGetSessionKey(self, messageKey: .session, haveSessionKey: true)
-        }
-    }
-    
-    /**
-     Request all the call information from QRZ.com to make a line on the map.
-     - parameters:
-     - spotterCall: first of a pair call signs to look up.
-     - dxCall: second of a pair call signs to look up.
-     */
-    func getConsolidatedQRZInformation(spotterCall: String, dxCall: String, frequency: String) {
-        
-        serialQRZProcessorQueue.sync(flags: .barrier) { [weak self] in
-            self?.parseQRZData(callSign: spotterCall, frequency: frequency)
-            self?.parseQRZData(callSign: dxCall, frequency: frequency)
-        }
-    }
-    
-    /**
-     Request all the call information from QRZ.com.
-     - parameters:
-     - call: call sign to look up.
-     */
-    func parseQRZData(callSign: String, frequency: String) {
-        
-        recordKey = "Callsign"
-        sessionDictionary = [String: String]()
-        dictionaryKeys = Set<String>(["call", "country", "lat", "lon", "grid", "lotw", "aliases"])
-        
-         // this dies if session key is missing
-        guard let urlString = URL(string: "https://xmldata.qrz.com/xml/current/?s=\(String(self.sessionKey));callsign=\(callSign)") else {
-            print("Invalid call sign: \(callSign)") // 'PY2OT  05'
-            return
-        }
-        
-        // first check to see if I have the info cached already
-        if let qrzInfo = qrzCallSignCache[callSign] {
-            combineQRZInfo(qrzInfo: qrzInfo, frequency: frequency)
-            //print ("cache hit for: \(callSign)")
-            //print("cache contains \(qrzCallSignCache.count) call signs.")
+      parser.delegate = self
+      if parser.parse() {
+        if (self.results != nil && self.results?.count != 0) {
+          if qrzCallSignPair.count > 1 {
+            qrzCallSignPair.removeAll()
+          } else {
+            if qrzCallSignPair.count > 2 {
+              print("Excess CallSignPairCount: \(qrzCallSignPair.count)")
+            }
+          }
+          populateQRZInfo(frequency: frequency)
         } else {
-            let parser = XMLParser(contentsOf: urlString)!
-            
-            parser.delegate = self
-            if parser.parse() {
-                if (self.results != nil && self.results?.count != 0) {
-                    if qrzCallSignPair.count > 1 {
-                        qrzCallSignPair.removeAll()
-                    } else {
-                        if qrzCallSignPair.count > 2 {
-                            print("Excess CallSignPairCount: \(qrzCallSignPair.count)")
-                        }
-                    }
-                    populateQRZInfo(frequency: frequency)
-                } else {
-                    // we did not get one or more hits
-                    // will move this to CallParser and call it there
-                   
-                }
-                
-            }
+          // we did not get one or more hits
+          // will move this to CallParser and call it there
+          
         }
+        
+      }
+    }
+  }
+  
+  /**
+   Populate the qrzInfo with lat. lon, etc. If there is a pair
+   send them to the viewcontroller for a line to be drawn.
+   - parameters: frequency represented as a string
+   */
+  func populateQRZInfo(frequency: String) {
+    
+    qrzInfo = QRZInfo()
+    
+    qrzInfo.call = sessionDictionary["call"] ?? ""
+    
+    //qrzInfo.call = ("\(qrzInfo.call)/W5") // for debug
+    // IF THERE IS A PREFIX OR SUFFIX CALL CALL PARSER AND SKIP SOME OF THIS
+    // ALSO IF WE DON'T GET ANTHING from QRZ
+    if qrzInfo.call.contains("/") { // process it
+      let hitList: [Hit] = callLookup.lookupCall(call: qrzInfo.call)
+      if hitList.count > 0 {
+        qrzInfo = populateQRZInfo(hitList: hitList)
+      }
+    } else {
+      qrzInfo.latitude = Double(sessionDictionary["lat"] ?? "0.0") ?? 00
+      if qrzInfo.latitude == 00 {
+        qrzInfo.error = true
+        print("latitude error: \(qrzInfo.call)")
+      }
+      
+      qrzInfo.longitude = Double(sessionDictionary["lon"] ?? "0.0") ?? 00
+      if qrzInfo.longitude == 00 {
+        qrzInfo.error = true
+        print("longitude error: \(qrzInfo.call)")
+      }
+      
+      // TODO: if there is a prefix or suffix I need to find correct country and lat/lon
+      
+      qrzInfo.country = sessionDictionary["country"] ?? ""
+      qrzInfo.grid = sessionDictionary["grid"] ?? ""
+      qrzInfo.lotw = Bool(sessionDictionary["lotw"] ?? "0") ?? false
+      qrzInfo.aliases = sessionDictionary["aliases"] ?? ""
     }
     
-    /**
-     Populate the qrzInfo with lat. lon, etc. If there is a pair
-     send them to the viewcontroller for a line to be drawn.
-     - parameters: frequency represented as a string
-     */
-    func populateQRZInfo(frequency: String) {
-        
-        qrzInfo = QRZInfo()
-        
-        qrzInfo.call = sessionDictionary["call"] ?? ""
-        
-        //qrzInfo.call = ("\(qrzInfo.call)/W5") // for debug
-         // IF THERE IS A PREFIX OR SUFFIX CALL CALL PARSER AND SKIP SOME OF THIS
-        // ALSO IF WE DON'T GET ANTHING from QRZ
-        if qrzInfo.call.contains("/") { // process it
-          let hitList: [Hit] = callParser.lookupCall(call: qrzInfo.call)
-            if hitList.count > 0 {
-                qrzInfo = populateQRZInfo(hitList: hitList)
-            }
-        } else {
-        
-            qrzInfo.latitude = Double(sessionDictionary["lat"] ?? "0.0") ?? 00
-            if qrzInfo.latitude == 00 {
-                qrzInfo.error = true
-                print("latitude error: \(qrzInfo.call)")
-            }
-            
-            qrzInfo.longitude = Double(sessionDictionary["lon"] ?? "0.0") ?? 00
-            if qrzInfo.longitude == 00 {
-                qrzInfo.error = true
-                print("longitude error: \(qrzInfo.call)")
-            }
-        
-            // TODO: if there is a prefix or suffix I need to find correct country and lat/lon
-            
-            qrzInfo.country = sessionDictionary["country"] ?? ""
-            qrzInfo.grid = sessionDictionary["grid"] ?? ""
-            qrzInfo.lotw = Bool(sessionDictionary["lotw"] ?? "0") ?? false
-            qrzInfo.aliases = sessionDictionary["aliases"] ?? ""
-        }
-        
-        // add to call sign cache
-        qrzCallSignCache[qrzInfo.call] = qrzInfo
-        combineQRZInfo(qrzInfo: qrzInfo, frequency: frequency)
+    // add to call sign cache
+    qrzCallSignCache[qrzInfo.call] = qrzInfo
+    combineQRZInfo(qrzInfo: qrzInfo, frequency: frequency)
+  }
+  
+  /**
+   Create a QRZInfo object from the hitlist.
+   - parameters:
+   - hitList: the array of hits returned
+   */
+  func populateQRZInfo(hitList: [Hit]) -> QRZInfo {
+    qrzInfo = QRZInfo()
+    
+    let hit = hitList[hitList.count - 1]
+    
+    qrzInfo.call = hit.call
+    qrzInfo.country = hit.country
+    
+    if let latitude = Double(hit.latitude) {
+      qrzInfo.latitude = latitude
     }
     
-    /**
-     Creatw a QRZInfo object from the hitlist.
-     - parameters:
-     - hitList: the array of hits returned
-     */
-    func populateQRZInfo(hitList: [Hit]) -> QRZInfo {
-        qrzInfo = QRZInfo()
-        
-        let hit = hitList[hitList.count - 1]
-        
-        qrzInfo.call = hit.call
-        qrzInfo.country = hit.country
-        
-        if let latitude = Double(hit.latitude) {
-            qrzInfo.latitude = latitude
-        }
-        
-        if let longitude = Double(hit.longitude) {
-            qrzInfo.latitude = longitude
-        }
-        
-        print("hit: \(qrzInfo.call)")
-        
-        return qrzInfo
+    if let longitude = Double(hit.longitude) {
+      qrzInfo.latitude = longitude
     }
     
-    /**
-     Combine the QRZ information and send it to the viewcontroller for a line to be drawn.
-     - parameters:
-     - qrzCallSignPairCopy: the pair of QRZInfo to be combined
-     - frequency: frequency to add to structure
-     */
-    func combineQRZInfo(qrzInfo: QRZInfo, frequency: String) {
-        
-        qrzCallSignPair.append(qrzInfo)
-        
-        if qrzCallSignPair.count == 2 {
-            let qrzCallSignPairCopy = qrzCallSignPair // use copy so we don't read while modifying
-            var qrzInfoCombined = QRZInfoCombined()
-            
-            qrzInfoCombined.setFrequency(frequency: frequency)
-            
-            qrzInfoCombined.spotterCall = qrzCallSignPairCopy[0].call
-            qrzInfoCombined.spotterCountry = qrzCallSignPairCopy[0].country
-            qrzInfoCombined.spotterLatitude = qrzCallSignPairCopy[0].latitude
-            qrzInfoCombined.spotterLongitude = qrzCallSignPairCopy[0].longitude
-            qrzInfoCombined.spotterGrid = qrzCallSignPairCopy[0].grid
-            qrzInfoCombined.spotterLotw = qrzCallSignPairCopy[0].lotw
-            qrzInfoCombined.error = qrzCallSignPairCopy[0].error
-            
-            qrzInfoCombined.dxCall = qrzCallSignPairCopy[1].call
-            qrzInfoCombined.dxCountry = qrzCallSignPairCopy[1].country
-            qrzInfoCombined.dxLatitude = qrzCallSignPairCopy[1].latitude
-            qrzInfoCombined.dxLongitude = qrzCallSignPairCopy[1].longitude
-            qrzInfoCombined.dxGrid = qrzCallSignPairCopy[1].grid
-            qrzInfoCombined.dxLotw = qrzCallSignPairCopy[1].lotw
-            if !qrzInfoCombined.error {
-                qrzInfoCombined.error = qrzCallSignPairCopy[1].error
-            }
-            
-          self.qrzManagerDelegate?.qrzManagerdidGetCallsignData(self, messageKey: .information, qrzInfoCombined: qrzInfoCombined)
-        }
+    print("hit: \(qrzInfo.call)")
+    
+    return qrzInfo
+  }
+  
+  /**
+   Combine the QRZ information and send it to the viewcontroller for a line to be drawn.
+   - parameters:
+   - qrzCallSignPairCopy: the pair of QRZInfo to be combined
+   - frequency: frequency to add to structure
+   */
+  func combineQRZInfo(qrzInfo: QRZInfo, frequency: String) {
+    
+    qrzCallSignPair.append(qrzInfo)
+    
+    if qrzCallSignPair.count == 2 {
+      let qrzCallSignPairCopy = qrzCallSignPair // use copy so we don't read while modifying
+      var qrzInfoCombined = QRZInfoCombined()
+      
+      qrzInfoCombined.setFrequency(frequency: frequency)
+      
+      qrzInfoCombined.spotterCall = qrzCallSignPairCopy[0].call
+      qrzInfoCombined.spotterCountry = qrzCallSignPairCopy[0].country
+      qrzInfoCombined.spotterLatitude = qrzCallSignPairCopy[0].latitude
+      qrzInfoCombined.spotterLongitude = qrzCallSignPairCopy[0].longitude
+      qrzInfoCombined.spotterGrid = qrzCallSignPairCopy[0].grid
+      qrzInfoCombined.spotterLotw = qrzCallSignPairCopy[0].lotw
+      qrzInfoCombined.error = qrzCallSignPairCopy[0].error
+      
+      qrzInfoCombined.dxCall = qrzCallSignPairCopy[1].call
+      qrzInfoCombined.dxCountry = qrzCallSignPairCopy[1].country
+      qrzInfoCombined.dxLatitude = qrzCallSignPairCopy[1].latitude
+      qrzInfoCombined.dxLongitude = qrzCallSignPairCopy[1].longitude
+      qrzInfoCombined.dxGrid = qrzCallSignPairCopy[1].grid
+      qrzInfoCombined.dxLotw = qrzCallSignPairCopy[1].lotw
+      if !qrzInfoCombined.error {
+        qrzInfoCombined.error = qrzCallSignPairCopy[1].error
+      }
+      
+      self.qrzManagerDelegate?.qrzManagerdidGetCallsignData(self, messageKey: .information, qrzInfoCombined: qrzInfoCombined)
     }
-    
-    /**
-     Combine the QRZ information and send it to the viewcontroller for a line to be drawn.
-     - parameters:
-     - qrzCallSignPairCopy: the pair of QRZInfo to be combined
-     */
-//    func combineQRZInfo(qrzCallSignPairCopy: [QRZInfo], frequency: String) {
-//
-//        var qrzInfoCombined = QRZInfoCombined()
-//
-//            qrzInfoCombined.setFrequency(frequency: frequency)
-//
-//            qrzInfoCombined.spotterCall = qrzCallSignPairCopy[0].call
-//            qrzInfoCombined.spotterCountry = qrzCallSignPairCopy[0].country
-//            qrzInfoCombined.spotterLatitude = qrzCallSignPairCopy[0].latitude
-//            qrzInfoCombined.spotterLongitude = qrzCallSignPairCopy[0].longitude
-//            qrzInfoCombined.spotterGrid = qrzCallSignPairCopy[0].grid
-//            qrzInfoCombined.spotterLotw = qrzCallSignPairCopy[0].lotw
-//            qrzInfoCombined.error = qrzCallSignPairCopy[0].error
-//
-//            qrzInfoCombined.dxCall = qrzCallSignPairCopy[1].call
-//            qrzInfoCombined.dxCountry = qrzCallSignPairCopy[1].country
-//            qrzInfoCombined.dxLatitude = qrzCallSignPairCopy[1].latitude
-//            qrzInfoCombined.dxLongitude = qrzCallSignPairCopy[1].longitude
-//            qrzInfoCombined.dxGrid = qrzCallSignPairCopy[1].grid
-//            qrzInfoCombined.dxLotw = qrzCallSignPairCopy[1].lotw
-//            if !qrzInfoCombined.error {
-//                qrzInfoCombined.error = qrzCallSignPairCopy[1].error
-//            }
-//
-//        self.qrzManagerDelegate?.qrzManagerdidGetCallsignData(self, messageKey: .INFORMATION, qrzInfoCombined: qrzInfoCombined)
-//    }
-    
-        
+  }
+  
 } // end class
 
 /*
