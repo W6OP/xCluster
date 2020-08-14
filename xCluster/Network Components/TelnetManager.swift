@@ -19,7 +19,9 @@ protocol TelnetManagerDelegate: class {
   func telnetManagerDataReceived(_ telnetManager: TelnetManager, messageKey: TelnetManagerMessage, message: String)
 }
 
-///
+// Someday look at rewriting this from
+// https://rderik.com/blog/building-a-server-client-aplication-using-apple-s-network-framework/
+
 class TelnetManager {
   
   // MARK: - Field Definitions ----------------------------------------------------------------------------
@@ -451,7 +453,7 @@ class TelnetManager {
   func disconnect() {
     if connected {
       send("bye", commandType: .ignore)
-      //connection.cancel()
+      connection.cancel()
     }
   }
   

@@ -27,6 +27,10 @@ struct ClusterSpot: Identifiable, Hashable {
 
 // MARK: - Controller Class
 
+// Good read on clusters
+// https://www.hamradiodeluxe.com/blog/Ham-Radio-Deluxe-Newsletter-April-19-2018--Understanding-DX-Clusters.html
+
+
 public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDelegate {
   
   private let concurrentSpotProcessorQueue =
