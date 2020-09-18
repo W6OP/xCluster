@@ -396,7 +396,7 @@ public class  Controller: ObservableObject, TelnetManagerDelegate, QRZManagerDel
       
       if self.haveSessionKey {
         DispatchQueue.global(qos: .background).async { [weak self] in
-          _ =  self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
+          self!.qrzManager.getConsolidatedQRZInformation(spotterCall: spot.spotter, dxCall: spot.dxStation, frequency: spot.frequency)
         }
       }
       
