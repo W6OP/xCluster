@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,25 +18,10 @@
 		99944E0B24AFCB18004AD573 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0A24AFCB18004AD573 /* Assets.xcassets */; };
 		99944E0E24AFCB18004AD573 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0D24AFCB18004AD573 /* Preview Assets.xcassets */; };
 		99944E1124AFCB19004AD573 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99944E0F24AFCB19004AD573 /* Main.storyboard */; };
+		99A0B10C256C4A4200D33F9A /* CallParser in Frameworks */ = {isa = PBXBuildFile; productRef = 99A0B10B256C4A4200D33F9A /* CallParser */; };
 		99A94D5824CF69A000A7D695 /* ClusterDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A94D5724CF69A000A7D695 /* ClusterDisplayView.swift */; };
-		99D1EA4024B3B12600ACC78B /* CallParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99D1EA3F24B3B12600ACC78B /* CallParser.framework */; };
-		99D1EA4124B3B12600ACC78B /* CallParser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 99D1EA3F24B3B12600ACC78B /* CallParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		99D1EA4424B3B33E00ACC78B /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D1EA4324B3B33E00ACC78B /* Controller.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		99D1EA4224B3B12600ACC78B /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				99D1EA4124B3B12600ACC78B /* CallParser.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		996588A524B0F3930007260B /* Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
@@ -54,7 +39,6 @@
 		99944E1224AFCB19004AD573 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99944E1324AFCB19004AD573 /* xCluster.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xCluster.entitlements; sourceTree = "<group>"; };
 		99A94D5724CF69A000A7D695 /* ClusterDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterDisplayView.swift; sourceTree = "<group>"; };
-		99D1EA3F24B3B12600ACC78B /* CallParser.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallParser.framework; path = ../../Library/Frameworks/CallParser.framework; sourceTree = "<group>"; };
 		99D1EA4324B3B33E00ACC78B /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,7 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				99D1EA4024B3B12600ACC78B /* CallParser.framework in Frameworks */,
+				99A0B10C256C4A4200D33F9A /* CallParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,7 +120,6 @@
 		99D1EA3E24B3B12600ACC78B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				99D1EA3F24B3B12600ACC78B /* CallParser.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -151,13 +134,15 @@
 				99944DFF24AFCB18004AD573 /* Sources */,
 				99944E0024AFCB18004AD573 /* Frameworks */,
 				99944E0124AFCB18004AD573 /* Resources */,
-				99D1EA4224B3B12600ACC78B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = xCluster;
+			packageProductDependencies = (
+				99A0B10B256C4A4200D33F9A /* CallParser */,
+			);
 			productName = xCluster;
 			productReference = 99944E0324AFCB18004AD573 /* xCluster.app */;
 			productType = "com.apple.product-type.application";
@@ -186,6 +171,9 @@
 				Base,
 			);
 			mainGroup = 99944DFA24AFCB18004AD573;
+			packageReferences = (
+				99A0B10A256C4A4200D33F9A /* XCRemoteSwiftPackageReference "CallParserForMac" */,
+			);
 			productRefGroup = 99944E0424AFCB18004AD573 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -435,6 +423,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		99A0B10A256C4A4200D33F9A /* XCRemoteSwiftPackageReference "CallParserForMac" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/W6OP/CallParserForMac.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		99A0B10B256C4A4200D33F9A /* CallParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99A0B10A256C4A4200D33F9A /* XCRemoteSwiftPackageReference "CallParserForMac" */;
+			productName = CallParser;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 99944DFB24AFCB18004AD573 /* Project object */;
 }

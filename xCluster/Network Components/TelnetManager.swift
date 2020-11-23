@@ -323,7 +323,7 @@ class TelnetManager {
 //      break
     case .posix(.ECANCELED):
       print("Posix .ECANCELED")
-      // what should I do here?
+      self.telnetManagerDelegate?.telnetManagerStatusMessageReceived(self, messageKey: .cancelled, message: "")
       break
 //    case .posix(.EIDRM):
 //      break

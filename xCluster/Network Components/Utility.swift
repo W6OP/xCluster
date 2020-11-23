@@ -109,6 +109,7 @@ enum CommandType : String {
  */
 enum TelnetManagerMessage : String {
   case announcement = "Announcement"
+  case cancelled = "Cancelled"
   case clustertype = "Cluster Type"
   case connected = "Connected"
   case disconnected = "Disconnected"
